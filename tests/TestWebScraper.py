@@ -2,7 +2,7 @@ import unittest
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from webScraper import WebScraper
+from crawler.webScraper import WebScraper
 import re
 
 class TestWebScraper(unittest.TestCase):
@@ -45,12 +45,12 @@ class TestWebScraper(unittest.TestCase):
 
     def test_parse_list(self):
         webScraper = WebScraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx)
-        alist = webScraper.parse_list(open('data-science-uoc/tfm/crawler/tests/idealista_lista_de_viviendas2.html', 'r').read(), self.list_items_rx, self.list_item_fields_rx)
+        alist = webScraper.parse_list(open('tests/idealista_lista_de_viviendas2.html', 'r').read(), self.list_items_rx, self.list_item_fields_rx)
         self.assertEqual(len(alist), 30)
 
     def test_parse_item(self):
         webScraper = WebScraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx)
-        anitem = webScraper.parse_item(open('data-science-uoc/tfm/crawler/tests/idealista_detalle_vivienda.html', 'r').read(), self.detail_item_fields_rx)
+        anitem = webScraper.parse_item(open('tests/idealista_detalle_vivienda.html', 'r').read(), self.detail_item_fields_rx)
         self.assertEqual(len(anitem), 11)
 
 
