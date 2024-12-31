@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Inversión Inmobiliaria</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: var(--primary-color);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .property-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .investment-metrics {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .market-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .score-card {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+        }
+        
+        .high-score { background-color: var(--success-color); }
+        .medium-score { background-color: var(--warning-color); }
+        .low-score { background-color: var(--danger-color); }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            font-size: 0.8em;
+        }
+        
+        .description {
+            grid-column: 1 / -1;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Informe de Inversión Inmobiliaria</h1>
+        <p>{{ property.address }}</p>
+    </div>
+
+    <div class="property-summary">
+        <div>
+            <h2>Información Básica</h2>
+            <p><strong>Precio:</strong> {{ price_formatted }}</p>
+            <p><strong>Superficie:</strong> {{ property.sup_m2 }}m²</p>
+            <p><strong>Precio/m²:</strong> {{ price_m2_formatted }}</p>
+            <p><strong>Habitaciones:</strong> {{ property.n_hab }}</p>
+            <p><strong>Estado:</strong> {{ property.disponibilidad }}</p>
+        </div>
+        
+        <div class="description">
+            <h2>Descripción</h2>
+            <p>{{ property.description | safe }}</p>
+        </div>
+        
+        <div class="score-card {% if investment_score >= 7 %}high-score{% elif investment_score >= 5 %}medium-score{% else %}low-score{% endif %}">
+            <h2>Puntuación de Inversión</h2>
+            <h3>{{ "%.1f"|format(investment_score) }}/10</h3>
+            <p>ROI Estimado: {{ "%.1f"|format(roi_estimation) }}%</p>
+        </div>
+    </div>
+
+    <div class="investment-metrics">
+        <h2>Análisis de Inversión</h2>
+        <p><strong>Alquiler Estimado Mensual:</strong> {{ "%.0f"|format(property.precio_alquiler_estimado) }}€</p>
+        <p><strong>Precio Estimado de Mercado:</strong> {{ "%.0f"|format(property.precio_venta_estimado) }}€</p>
+        <p><strong>Desviación del Precio de Mercado:</strong> {{ "%.1f"|format(property.precio_desv_media * 100) }}%</p>
+    </div>
+
+    <div class="market-analysis">
+        <div>
+            <h2>Análisis de Mercado - {{ property.barrio }}</h2>
+            <h3>Evolución de Precios</h3>
+            <p>Último año: {{ "%.1f"|format(property.grow_acu_venta_1y * 100) }}%</p>
+            <p>Últimos 5 años: {{ "%.1f"|format(property.grow_acu_venta_5y * 100) }}%</p>
+            <p>Últimos 10 años: {{ "%.1f"|format(property.grow_acu_venta_10y * 100) }}%</p>
+        </div>
+        
+        <div>
+            <h3>Evolución de Alquileres</h3>
+            <p>Último año: {{ "%.1f"|format(property.grow_acu_alquiler_1y * 100) }}%</p>
+            <p>Últimos 5 años: {{ "%.1f"|format(property.grow_acu_alquiler_5y * 100) }}%</p>
+            <p>Últimos 10 años: {{ "%.1f"|format(property.grow_acu_alquiler_10y * 100) }}%</p>
+        </div>
+        
+        <div>
+            <h3>Rentabilidad Histórica</h3>
+            <p>Último año: {{ "%.1f"|format(property.rentabilidad_1y * 100) }}%</p>
+            <p>Últimos 5 años: {{ "%.1f"|format(property.rentabilidad_5y * 100) }}%</p>
+            <p>Últimos 10 años: {{ "%.1f"|format(property.rentabilidad_10y * 100) }}%</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Informe generado el {{ generation_date }}</p>
+        <p>Datos obtenidos de fuentes públicas y análisis estadístico</p>
+    </div>
+</body>
+</html>

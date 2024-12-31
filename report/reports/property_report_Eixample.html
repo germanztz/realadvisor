@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Inversión Inmobiliaria</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: var(--primary-color);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .property-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .investment-metrics {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .market-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .score-card {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+        }
+        
+        .high-score { background-color: var(--success-color); }
+        .medium-score { background-color: var(--warning-color); }
+        .low-score { background-color: var(--danger-color); }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            font-size: 0.8em;
+        }
+        
+        .description {
+            grid-column: 1 / -1;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Informe de Inversión Inmobiliaria</h1>
+        <p>Sample Address</p>
+    </div>
+
+    <div class="property-summary">
+        <div>
+            <h2>Información Básica</h2>
+            <p><strong>Precio:</strong> 300,000€</p>
+            <p><strong>Superficie:</strong> 80m²</p>
+            <p><strong>Precio/m²:</strong> 3,750€/m²</p>
+            <p><strong>Habitaciones:</strong> 2</p>
+            <p><strong>Estado:</strong> Disponible</p>
+        </div>
+        
+        <div class="description">
+            <h2>Descripción</h2>
+            <p>Sample description</p>
+        </div>
+        
+        <div class="score-card high-score">
+            <h2>Puntuación de Inversión</h2>
+            <h3>321.5/10</h3>
+            <p>ROI Estimado: 4.8%</p>
+        </div>
+    </div>
+
+    <div class="investment-metrics">
+        <h2>Análisis de Inversión</h2>
+        <p><strong>Alquiler Estimado Mensual:</strong> 1200€</p>
+        <p><strong>Precio Estimado de Mercado:</strong> 320000€</p>
+        <p><strong>Desviación del Precio de Mercado:</strong> 500.0%</p>
+    </div>
+
+    <div class="market-analysis">
+        <div>
+            <h2>Análisis de Mercado - Eixample</h2>
+            <h3>Evolución de Precios</h3>
+            <p>Último año: 340.0%</p>
+            <p>Últimos 5 años: 1110.0%</p>
+            <p>Últimos 10 años: 2000.0%</p>
+        </div>
+        
+        <div>
+            <h3>Evolución de Alquileres</h3>
+            <p>Último año: 910.0%</p>
+            <p>Últimos 5 años: 2000.0%</p>
+            <p>Últimos 10 años: 3330.0%</p>
+        </div>
+        
+        <div>
+            <h3>Rentabilidad Histórica</h3>
+            <p>Último año: 480.0%</p>
+            <p>Últimos 5 años: 460.0%</p>
+            <p>Últimos 10 años: 450.0%</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Informe generado el 2024-12-29 13:04</p>
+        <p>Datos obtenidos de fuentes públicas y análisis estadístico</p>
+    </div>
+</body>
+</html>
