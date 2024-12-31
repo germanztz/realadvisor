@@ -18,5 +18,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV GRADIO_SERVER_PORT=7860
 ENV PYTHONPATH=/app
 
+COPY . .
 # Command to run the application with auto-reload
 CMD ["python", "-m", "watchdog.watchmedo", "auto-restart", "--directory", ".", "--pattern", "*.py", "--recursive", "--", "python", "app.py"]

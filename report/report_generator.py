@@ -28,8 +28,8 @@ class ReportGenerator:
         # Prepare data for template
         data = {
             'property': property_report,
-            'investment_score': property_report.get_investment_score(),
-            'roi_estimation': property_report.get_roi_estimation(),
+            'investment_score': property_report.global_score_stars,
+            'roi_estimation': property_report.rentabilidad_1y,
             'generation_date': datetime.now().strftime('%Y-%m-%d %H:%M'),
             'price_formatted': f"{property_report.price:,.0f}€",
             'price_m2_formatted': f"{property_report.precio_m2:,.0f}€/m²"
@@ -71,56 +71,11 @@ class ReportGenerator:
             
         return html_path, pdf_path
 
-    def generate_report_example(self):
-        # Example usage
-        from realty_report import RealtyReport
-        
-        # Create a sample RealtyReport
-        sample_report = RealtyReport(
-            link="sample_link",
-            type_v="Piso",
-            address="Sample Address",
-            town="Barcelona",
-            price=300000,
-            price_old=None,
-            info="Sample info",
-            description="Sample description",
-            tags="sample tags",
-            agent="Sample Agent",
-            created="2023-01-01",
-            n_hab=2,
-            sup_m2=80,
-            disponibilidad="Disponible",
-            precio_venta_stars=4,
-            precio_alquiler_estimado=1200,
-            precio_venta_estimado=320000,
-            barrio="Eixample",
-            sup_nombre="Barcelona",
-            tipo="Urbano",
-            precio_venta_10y=250000,
-            precio_venta_1y=290000,
-            precio_venta_5y=270000,
-            precio_alquiler_10y=900,
-            precio_alquiler_1y=1100,
-            precio_alquiler_5y=1000,
-            rentabilidad_10y=4.5,
-            rentabilidad_1y=4.8,
-            rentabilidad_5y=4.6,
-            grow_acu_alquiler_10y=33.3,
-            grow_acu_venta_10y=20.0,
-            grow_acu_alquiler_1y=9.1,
-            grow_acu_venta_1y=3.4,
-            grow_acu_alquiler_5y=20.0,
-            grow_acu_venta_5y=11.1,
-            precio_m2=3750,
-            precio_desv_media=5.0
-        )
-        return self.generate_report_file(sample_report)
 
 
 if __name__ == "__main__":
     # Example usage
     # Create report generator and generate report
     generator = ReportGenerator()
-    html_path, pdf_path = generator.generate_report_example()
+    html_path, pdf_path = generator.generate_report_file(RealtyReport.get_example())
     print(f"Generated reports:\nHTML: {html_path}\nPDF: {pdf_path}")
