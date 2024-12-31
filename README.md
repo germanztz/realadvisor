@@ -51,3 +51,36 @@ After making these changes, try running your script again:
 If you're still having issues, you might need to log out and log back in for the group changes to take effect completely.
 
 Note: The `chmod 666` solution is temporary and will reset after a system restart. The proper solution is ensuring your user is in the docker group.
+
+
+---
+
+
+
+
+If Git is not ignoring a file despite it being listed in `.gitignore`, it's likely because the file was already tracked by Git before being added to `.gitignore`. The `.gitignore` file only works for untracked files.
+
+To fix this, you need to:
+
+1. First, remove the file from Git's tracking (but keep it on your disk):
+```bash
+git rm --cached report/reports/property_report_Eixample.html
+```
+
+2. Make sure your `.gitignore` entry is correct (it looks fine in your case):
+```gitignore
+report/reports/property_report_Eixample.html
+```
+
+3. Commit the changes:
+```bash
+git add .gitignore
+git commit -m "Stop tracking property_report_Eixample.html"
+```
+
+After these steps, Git will stop tracking the file, and it will be properly ignored. The file will remain on your local system but won't be included in future commits.
+
+Note: If you want to ignore all HTML files in that directory, you could use a pattern instead:
+```gitignore
+report/reports/*.html
+```

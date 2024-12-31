@@ -1,11 +1,14 @@
+import sys
 import gradio as gr
 import os
-from report.realty_report import RealtyReport
-# from report.report_generator import ReportGenerator
+sys.path.append('report')
+from report_generator import ReportGenerator
+from realty_report import RealtyReport
 
 def greet(name):
-    report = RealtyReport()
-    return f"Hello {name}!"
+    report_generator = ReportGenerator()
+    example_report = report_generator.generate_report_example()
+    return f"Hello {example_report}!"
 
 
 # Create the Gradio interface

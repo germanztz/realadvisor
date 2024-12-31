@@ -14,11 +14,9 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Add watchdog for auto-reloading
-RUN pip install watchdog
-
-# Set environment variable for Gradio port
+# Set environment variable for Gradio port and Python path
 ENV GRADIO_SERVER_PORT=7860
+ENV PYTHONPATH=/app
 
 # Command to run the application with auto-reload
 CMD ["python", "-m", "watchdog.watchmedo", "auto-restart", "--directory", ".", "--pattern", "*.py", "--recursive", "--", "python", "app.py"]
