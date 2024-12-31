@@ -170,4 +170,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+
 reports/
+report/reports/
+report/reports/property_report_Eixample.html
