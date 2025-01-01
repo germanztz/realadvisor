@@ -1,22 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional
+from .realty import Realty
 
 @dataclass
-class RealtyReport:
-    # Basic property info
-    link: str
-    type_v: str
-    address: str
-    town: str
-    price: int
-    price_old: Optional[float]
-    info: str
-    description: str
-    tags: str
-    agent: Optional[float]
-    created: str
-    
-    # Property characteristics
+class RealtyReport(Realty):
+    # Property characteristics (additional to Realty)
     n_hab: Optional[int]
     sup_m2: int
     disponibilidad: str

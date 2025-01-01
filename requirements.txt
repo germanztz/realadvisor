@@ -3,4 +3,6 @@ numpy
 pandas
 pdfkit
 jinja2
+pytest
+pytest-cov
 watchdog

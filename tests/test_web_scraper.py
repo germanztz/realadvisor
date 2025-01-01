@@ -1,9 +1,8 @@
 import unittest
 import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from crawler.webScraper import WebScraper
 import re
+sys.path.append('crawler')
+from web_scraper import WebScraper
 
 class TestWebScraper(unittest.TestCase):
 
@@ -42,16 +41,33 @@ class TestWebScraper(unittest.TestCase):
 
         self.url = 'https://www.TestWebScraper.local'
         self.datafile = __file__+'_datafile.csv'
+        
+        self.post_fields_lambda = {
+            'link': lambda m: f"https://www.TestWebScraper.local{m}" if isinstance(m, str) else m,
+            # 'info_sub': lambda m: ','.join(m) if isinstance(m, list) else m,
+            'description': lambda m: re.sub(r"<.*?>", " ", m) if isinstance(m, str) else m
+        }
 
     def test_parse_list(self):
-        webScraper = WebScraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx)
-        alist = webScraper.parse_list(open('tests/idealista_lista_de_viviendas2.html', 'r').read(), self.list_items_rx, self.list_item_fields_rx)
+        webScraper = WebScraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx, self.post_fields_lambda)
+        alist = webScraper.parse_list(open('tests/idealista_lista_de_viviendas2.html', 'r').read().replace("\n", "").replace("\r", ""), self.list_items_rx, self.list_item_fields_rx, self.post_fields_lambda)
+        print(alist)
         self.assertEqual(len(alist), 30)
 
     def test_parse_item(self):
-        webScraper = WebScraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx)
-        anitem = webScraper.parse_item(open('tests/idealista_detalle_vivienda.html', 'r').read(), self.detail_item_fields_rx)
-        self.assertEqual(len(anitem), 11)
+        webScraper = WebScraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx, self.post_fields_lambda)
+        anitem = webScraper.parse_item(open('tests/idealista_detalle_vivienda.html', 'r').read().replace("\n", "").replace("\r", ""), self.detail_item_fields_rx, self.post_fields_lambda)
+        print(anitem)
+        self.assertEqual(anitem['link'], 'https://www.TestWebScraper.local/inmueble/105043094/')
+        self.assertEqual(anitem['type_v'], 'Piso')
+        self.assertEqual(anitem['address'], 'paseo de Gràcia')
+        self.assertEqual(anitem['town'], "La Dreta de l'Eixample, Barcelona")
+        self.assertEqual(anitem['price'], '1.350.000')
+        self.assertEqual(anitem['price_old'], '1.400.000')
+        self.assertEqual(len(anitem['info']), 13)
+        self.assertEqual(len(anitem['description']), 2438)
+        self.assertEqual(anitem['tags'], 'Luminoso')
+        self.assertEqual(anitem['agent'], 'https://www.bcn-advisors.com/propiedades/impresionante-y-tranquilo-piso-de-lujo-reformado-en-paseo-de-gracia')
 
 
 if __name__ == "__main__":

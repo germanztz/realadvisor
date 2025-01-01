@@ -17,7 +17,7 @@ class WebScraper:
     # TODO: Implementar el scrapping de un array de URLs
     # TODO: Implementar sin pandas ni numpy
     
-    def __init__(self, url, datafile_path, list_items_rx, list_items_fields, list_next_rx, detail_fields):
+    def __init__(self, url, datafile_path, list_items_rx, list_items_fields, list_next_rx, detail_fields, post_fields_lambda=None):
         '''
         Class for scraping a website and obtaining a database
         
@@ -35,6 +35,8 @@ class WebScraper:
             regular expression to obtain the link of the next page of the list view
         detail_fields : dict
             dictionary of regular expressions to obtain the fields of each item of the detail view
+        post_fields_lambda : dict
+            dictionary of lambda functions to obtain the fields of each item of the detail view
         '''
 
         warnings.filterwarnings('ignore')
@@ -57,6 +59,7 @@ class WebScraper:
         self.list_items_fields = list_items_fields
         self.detail_fields = detail_fields
         self.list_next_rx = list_next_rx
+        self.post_fields_lambda = post_fields_lambda
 
         # 5. Rotación de Agentes de Usuario (User-Agent)
         #     Cambia el User-Agent de manera aleatoria para cada solicitud.
@@ -98,7 +101,7 @@ class WebScraper:
         self.base_host = self.base_url_rx.group(1)
         self.logger.info(f'URL set to {url}')
 
-    def parse_field(self, html, field_name, fields_rx):
+    def parse_field(self, html, field_name, fields_rx, post_fields_lambda=None):
         """
         Parses the specified field from the provided HTML content using regular expressions.
 
@@ -106,6 +109,7 @@ class WebScraper:
             html (str): The HTML content to parse.
             field_name (str): The name of the field to extract from the HTML.
             fields_rx (dict): A dictionary containing regular expressions for each field.
+            post_fields_lambda (dict): A dictionary containing lambda functions for each field.
 
         Returns:
             The extracted field value(s), or None if not found. If the field name contains 'sub',
@@ -116,24 +120,29 @@ class WebScraper:
         """
         try:
             ret = fields_rx[field_name].findall(html)
+            if field_name == 'description':
+                self.logger.debug(f'description: {fields_rx[field_name]}')
             ret = ret[0] if len(ret) == 1 else ret    
             ret = None if len(ret) == 0 else ret    
             if 'sub' in field_name and not ret is None:
                 ret = fields_rx[field_name.replace('sub', 'elem')].findall(ret)
+            if post_fields_lambda is not None and field_name in post_fields_lambda:
+                ret = post_fields_lambda[field_name](ret)
+
             self.logger.debug(f'parse_field {field_name}: {ret}')
             return ret
         except Exception as e:
             self.logger.error(e)
             return None
 
-    def parse_item(self, html, fields_rx):
+    def parse_item(self, html, fields_rx, post_fields_lambda=None):
         """
         Parses a post from the provided HTML content using regular expressions.
 
         Args:
             html (str): The HTML content to parse.
             fields_rx (dict): A dictionary containing regular expressions for each field.
-
+            post_fields_lambda (dict): A dictionary containing lambda functions for each field.
         Returns:
             dict: A dictionary containing the extracted fields and their values. The dictionary
             includes a 'created' timestamp indicating when the parsing occurred.
@@ -146,12 +155,12 @@ class WebScraper:
 
         for field, rx in fields_rx.items():
             if '_elem' not in field:
-                dict_item[field.replace('_sub', '')] = self.parse_field(html, field, fields_rx)
+                dict_item[field.replace('_sub', '')] = self.parse_field(html, field, fields_rx, post_fields_lambda)
 
         self.logger.debug(f'parse_item: {dict_item}')
         return dict_item
 
-    def parse_list(self, html, list_items_rx, fields_rx):
+    def parse_list(self, html, list_items_rx, fields_rx, post_fields_lambda=None):
         """
         Parses a list of items from the provided HTML content using regular expressions.
 
@@ -159,40 +168,40 @@ class WebScraper:
             html (str): The HTML content to parse.
             list_items_rx (regex): expresion regular para obtener los items de la vista listado
             fields_rx (dict): A dictionary containing regular expressions for each field.
-
+            post_fields_lambda (dict): A dictionary containing lambda functions for each field.
         Returns:
             list: A list containing dictionaries with the extracted fields and their values.
 
         Raises:
             Exception: If there is an error during parsing, it logs the error and returns None.
         """
-        elements_html = self.parse_field(html, 'elements_html', {'elements_html': list_items_rx})
+        elements_html = self.parse_field(html, 'elements_html', {'elements_html': list_items_rx}, post_fields_lambda)
         list_columns = [f.replace('_sub', '') for f in fields_rx.keys() if 'elem' not in f]
 
         self.logger.info(f'Campos a extraer: {list_columns}')
 
         item_list = list()
         for elem_html in elements_html:
-            item_list += [self.parse_item(elem_html, fields_rx)]
+            item_list += [self.parse_item(elem_html, fields_rx, post_fields_lambda)]
         
         self.logger.info(f'Elementos extraidos de la lista: {len(item_list)} elementos')
         return item_list
         
-    def parse_list_next(self, html, list_next_rx):
+    def parse_list_next(self, html, list_next_rx, post_fields_lambda=None):
         """
         Parses the next page link from the provided HTML content using regular expressions.
 
         Args:
             html (str): The HTML content to parse.
             list_next_rx (regex): expresion regular para obtener el enlace a la página siguiente
-
+            post_fields_lambda (dict): A dictionary containing lambda functions for each field.
         Returns:
             str: The next page link, or None if the link is not found.
 
         Raises:
             Exception: If there is an error during parsing, it logs the error and returns None.
         """
-        next_href = self.parse_field(html, 'next_page', {'next_page': list_next_rx})
+        next_href = self.parse_field(html, 'next_page', {'next_page': list_next_rx}, post_fields_lambda)
         self.logger.debug(f'parse_list_next: {next_href}')
         return next_href
 
@@ -233,7 +242,7 @@ class WebScraper:
             content = content.replace("\n", "").replace("\r", "")
             self.logger.debug(f'Contenido de la página: {content}')
             # Parsear el contenido de la web
-            curr_page = self.parse_list(content, self.list_items_rx, self.list_items_fields)
+            curr_page = self.parse_list(content, self.list_items_rx, self.list_items_fields, self.post_fields_lambda)
 
             curr_page_df = pd.DataFrame(curr_page)
             repetidos = curr_page_df['link'].isin(self.data['link'])
@@ -244,7 +253,7 @@ class WebScraper:
             
             self.data.to_csv(self.datafile_path, index=False)
 
-            next_href = self.parse_list_next(content, self.list_next_rx)
+            next_href = self.parse_list_next(content, self.list_next_rx, self.post_fields_lambda)
             self.logger.info(f'Tiempo transcurrido: {time.perf_counter() - start}')
             if next_href is None:
                 self.logger.info('Finalizado, se ha procesado la última página')
