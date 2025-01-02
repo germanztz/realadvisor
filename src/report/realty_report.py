@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from .realty import Realty
+from src.realty import Realty
 
 @dataclass
 class RealtyReport(Realty):

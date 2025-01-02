@@ -1,8 +1,8 @@
 import sys
 import gradio as gr
 import os
-sys.path.append('report')
-sys.path.append('crawler')
+sys.path.append('src/report')
+sys.path.append('src/crawler')
 from report_generator import ReportGenerator
 from realty_report import RealtyReport
 from web_scraper import WebScraper

@@ -51,13 +51,11 @@ class TestWebScraper(unittest.TestCase):
     def test_parse_list(self):
         webScraper = WebScraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx, self.post_fields_lambda)
         alist = webScraper.parse_list(open('tests/idealista_lista_de_viviendas2.html', 'r').read().replace("\n", "").replace("\r", ""), self.list_items_rx, self.list_item_fields_rx, self.post_fields_lambda)
-        print(alist)
         self.assertEqual(len(alist), 30)
 
     def test_parse_item(self):
         webScraper = WebScraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx, self.post_fields_lambda)
         anitem = webScraper.parse_item(open('tests/idealista_detalle_vivienda.html', 'r').read().replace("\n", "").replace("\r", ""), self.detail_item_fields_rx, self.post_fields_lambda)
-        print(anitem)
         self.assertEqual(anitem['link'], 'https://www.TestWebScraper.local/inmueble/105043094/')
         self.assertEqual(anitem['type_v'], 'Piso')
         self.assertEqual(anitem['address'], 'paseo de Gràcia')
