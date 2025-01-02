@@ -1,7 +1,7 @@
 import unittest
 import sys
 import re
-sys.path.append('crawler')
+sys.path.append('src/crawler')
 from web_scraper import WebScraper
 
 class TestWebScraper(unittest.TestCase):
