@@ -1,35 +1,35 @@
 import unittest
 import sys
-sys.path.append('src')
-from realty import Realty
+sys.path.append('src/report')
+from realty_report import RealtyReport
 
-class TestRealty(unittest.TestCase):
+class TestRealtyReport(unittest.TestCase):
     def setUp(self):
-        self.realty = Realty.get_sample()
+        self.realty = RealtyReport.get_sample()
         
     def test_create_realty(self):
-        realty = Realty(**Realty.get_sample_data())
+        realty = RealtyReport(**RealtyReport.get_sample_data())
         self.assertEqual(realty.link, 'https://example.com/inmueble/123456/')
         self.assertEqual(realty.price, 250000)
         self.assertEqual(realty.price_old, 260000)
-        self.assertEqual(realty.tags, ['Reformado', 'Exterior'])
-        self.assertEqual(realty.description, 'Piso en venta en<br> Barcelona reformado y con terraza ocupada')
-        self.assertEqual(realty.town, 'Sant Andreu, Barcelona')
+        self.assertEqual(realty.tags, ['terraza', 'barcelona reformado'])
+        self.assertEqual(realty.description, 'piso en venta en barcelona reformado y con terraza ocupada')
+        self.assertEqual(realty.town, 'sant andreu')
              
     def test_str_representation(self):
-        realty = Realty(**Realty.get_sample_data())
+        realty = RealtyReport(**RealtyReport.get_sample_data())
         str_output = str(realty)
         self.assertIn('https://example.com/inmueble/123456/', str_output)
         self.assertIn('calle test 123', str_output)
         
     def test_optional_fields(self):
-        data = Realty.get_sample_data()
+        data = RealtyReport.get_sample_data()
         data['price_old'] = None
-        data['tags'] = None
+        data['tags'] = ['terraza', 'barcelona reformado']
         data['agent'] = None
-        realty = Realty(**data)
+        realty = RealtyReport(**data)
         self.assertIsNone(realty._price_old)
-        self.assertIsNone(realty._tags)
+        self.assertEqual(realty._tags, ['terraza', 'barcelona reformado'])
         self.assertIsNone(realty._agent)
 
     # def test_get_tags(self):
@@ -58,22 +58,22 @@ class TestRealty(unittest.TestCase):
     #     self.assertEqual(n_hab, 3)
 
     def test_to_dict(self):
-        realty = Realty(**Realty.get_sample_data())
+        realty = RealtyReport(**RealtyReport.get_sample_data())
         dict_output = realty.to_dict()
         self.assertEqual(dict_output['link'], 'https://example.com/inmueble/123456/')
         self.assertEqual(dict_output['price'], 250000)
         self.assertEqual(dict_output['price_old'], 260000.0)
 
     def test_parse_price(self):
-        self.assertEqual(Realty.parse_price('123456'), 123456.0)
-        self.assertEqual(Realty.parse_price('123.456.789,01'), 123456789.01)
-        self.assertEqual(Realty.parse_price('12.345'), 12345.0)
-        self.assertEqual(Realty.parse_price('1,234'), 1234.0)
-        self.assertEqual(Realty.parse_price('1,234,567'), 1234567.0)
-        self.assertEqual(Realty.parse_price('1234.567'), 1234.567)
+        self.assertEqual(RealtyReport.parse_price('123456'), 123456.0)
+        self.assertEqual(RealtyReport.parse_price('123.456.789,01'), 123456789.01)
+        self.assertEqual(RealtyReport.parse_price('12.345'), 12345.0)
+        self.assertEqual(RealtyReport.parse_price('1,234'), 1234.0)
+        self.assertEqual(RealtyReport.parse_price('1,234,567'), 1234567.0)
+        self.assertEqual(RealtyReport.parse_price('1234.567'), 1234.567)
         
     def test_tags_setter(self):
-        realty = Realty(**Realty.get_sample_data())
+        realty = RealtyReport(**RealtyReport.get_sample_data())
         
         # Test setting None
         realty.tags = None
@@ -96,7 +96,7 @@ class TestRealty(unittest.TestCase):
         self.assertIsNone(realty._tags)
 
     def test_price_old_setter(self):
-        realty = Realty(**Realty.get_sample_data())
+        realty = RealtyReport(**RealtyReport.get_sample_data())
         
         realty.price_old = '123.456'
         self.assertEqual(realty._price_old, 123456)

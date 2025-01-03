@@ -1,3 +1,4 @@
+import sys
 import requests
 import time
 import random
@@ -10,14 +11,13 @@ import warnings
 import logging
 import warnings
 
-
 class WebScraper:
 
     # TODO: Implementar la rotación de User-Agent
     # TODO: Implementar el scrapping de un array de URLs
     # TODO: Implementar sin pandas ni numpy
     
-    def __init__(self, url, datafile_path, list_items_rx, list_items_fields, list_next_rx, detail_fields, post_fields_lambda=None):
+    def __init__(self, url = None, datafile_path = None, list_items_rx = None, list_items_fields = None, list_next_rx = None, detail_fields = None, post_fields_lambda = None):
         '''
         Class for scraping a website and obtaining a database
         
@@ -67,11 +67,13 @@ class WebScraper:
         # ua = UserAgent()
         # headers = {"User-Agent": ua.random}
 
-        list_columns = [f.replace('_sub', '') for f in self.list_items_fields.keys() if 'elem' not in f]
-        self.data = pd.DataFrame(columns=list_columns)
-        if os.path.exists(self.datafile_path):
-            self.data = pd.read_csv(self.datafile_path)
+        # list_columns = [f.replace('_sub', '') for f in self.list_items_fields.keys() if 'elem' not in f]
+        self.data = pd.DataFrame()
+        # if os.path.exists(self.datafile_path):
+        #     self.data = pd.read_csv(self.datafile_path)
 
+    def init_headers(self, url):
+        self.set_url(url)
         self.headers = {
             'Host': self.base_host,
             'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0',
@@ -87,6 +89,7 @@ class WebScraper:
             'Priority': 'u=0, i',
             'TE': 'trailers'
         }
+        return self.headers
 
     def set_url(self, url):
         """
@@ -95,11 +98,26 @@ class WebScraper:
         Args:
             url (str): The new URL to be set for the scraper.
         """
-        self.url = url
+        if url is None: return False
+        self.url = url.strip()
         self.base_url_rx = re.search(r'https?://([^/]+)', self.url)
         self.base_url = self.base_url_rx.group(0)
         self.base_host = self.base_url_rx.group(1)
         self.logger.info(f'URL set to {url}')
+
+    def get_response(self, url):
+        self.set_url(url)
+        session = requests.Session()
+        session.headers.update(self.init_headers(url))
+        response = session.get(self.url)  
+        self.logger.debug(f'Response status: {response.status_code}')
+        return response
+
+    def get_content(self, response):
+        content = response.content.decode('utf-8')
+        content = content.replace("\n", "").replace("\r", "")
+        self.logger.debug(f'Contenido de la página: {content}')
+        return content
 
     def parse_field(self, html, field_name, fields_rx, post_fields_lambda=None):
         """
@@ -135,7 +153,7 @@ class WebScraper:
             self.logger.error(e)
             return None
 
-    def parse_item(self, html, fields_rx, post_fields_lambda=None):
+    def parse_item(self, html, fields_rx, post_fields_lambda=None) -> dict:
         """
         Parses a post from the provided HTML content using regular expressions.
 
@@ -230,17 +248,12 @@ class WebScraper:
         self.logger.info(f'Procesando: {url}')
 
         self.set_url(url)
-        # request con cookies
-        session = requests.Session()
-        session.headers.update(self.headers)
-        response = session.get(self.url)  
+        response = self.get_response(self.url)
 
         # Verificar si la solicitud fue exitosa
         if response.status_code == 200:
 
-            content = response.content.decode('utf-8')
-            content = content.replace("\n", "").replace("\r", "")
-            self.logger.debug(f'Contenido de la página: {content}')
+            content = self.get_content(response)
             # Parsear el contenido de la web
             curr_page = self.parse_list(content, self.list_items_rx, self.list_items_fields, self.post_fields_lambda)
 
@@ -287,5 +300,16 @@ class WebScraper:
 
         for url in url_list:
             self.run_crawl_web(url)
+
+    def scrap_realty(self, url, detail_fields = None, post_fields_lambda = None) -> dict:
+        response = self.get_response(url)
+
+        if response.status_code == 200:
+            content = self.get_content(response)
+            data = self.parse_item(content.replace('\n', '').replace('\r', ''), detail_fields, post_fields_lambda)
+            return (data)
+        else:
+            self.logger.error(f"Error al enviar la solicitud: {response.status_code}: {response.reason}")
+            return None
 
 # if __name__ == '__main__':

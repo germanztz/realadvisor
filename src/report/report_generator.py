@@ -2,9 +2,12 @@ import sys
 import os
 
 from datetime import datetime
+import pandas as pd
 import pdfkit
 from jinja2 import Environment, FileSystemLoader
 from realty_report import RealtyReport
+sys.path.append('src')
+from realty import Realty
 
 class ReportGenerator:
     def __init__(self, template_path: str = 'report_template.html'):
@@ -71,7 +74,24 @@ class ReportGenerator:
             
         return html_path, pdf_path
 
+    def generate_report(self, realty: Realty, indicators_file: str, template_path: str):
+        realty_report = RealtyReport(**realty.to_dict())
+        self.load_indicators(realty_report, indicators_file)
+        template = self.env.get_template(template_path)
+        
+        return template.render(
+            **realty_report.to_dict(),
+            stars_to_emoji_string=realty_report.stars_to_emoji(realty_report.global_score_stars),
+            tags_to_emoji_string=realty_report.tags_to_emoji(),
+            availability_to_emoji_string=realty_report.availability_to_emoji())
 
+    def load_indicators(self, realty_report: RealtyReport, indicators_file: str):
+        indicadores = pd.read_csv(indicators_file)
+        places = indicadores['nombre'].unique().tolist()
+        realty_report.match_place(places)
+        indicadores = indicadores[indicadores['nombre'] == realty_report.barrio].sort_values(by='tipo', ascending=True)
+        for index, row in indicadores.iterrows():
+            realty_report.set_indicadores(**row.to_dict())
 
 if __name__ == "__main__":
     # Example usage

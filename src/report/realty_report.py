@@ -1,138 +1,406 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
+from difflib import SequenceMatcher
+import html
+import re
+import unicodedata
 from src.realty import Realty
 
 @dataclass
 class RealtyReport(Realty):
     # Property characteristics (additional to Realty)
-    n_hab: Optional[int]
-    sup_m2: int
-    disponibilidad: str
+    n_hab: Optional[int] = field(default=None, init=False, repr=False)
+    sup_m2: int = field(default=None, init=False, repr=False)
+    disponibilidad: str = field(default=None, init=False, repr=False)
     
     # Location info
-    barrio: str
-    barrio_ratio: float
-    id: int
-    nombre: str
-    sup_id: int
-    sup_nombre: str
-    tipo: str
+    barrio: str = field(default=None, init=False, repr=False)
+    barrio_ratio: float = field(default=None, init=False, repr=False)
+    id: int = field(default=None, init=False, repr=False)
+    nombre: str = field(default=None, init=False, repr=False)
+    sup_id: int = field(default=None, init=False, repr=False)
+    sup_nombre: str = field(default=None, init=False, repr=False)
+    tipo: str = field(default=None, init=False, repr=False)
     
     # Market statistics - 1y
-    precio_venta_1y: float
-    superficie_venta_1y: float
-    elasticidad_1y: float
-    precio_alquiler_1y: float
-    rentabilidad_1y: float
-    grow_acu_alquiler_1y: float
-    grow_acu_venta_1y: float
-    grow_acu_superficie_venta_1y: float
+    precio_venta_1y: float = field(default=None, init=False, repr=False)
+    superficie_venta_1y: float = field(default=None, init=False, repr=False)
+    elasticidad_1y: float = field(default=None, init=False, repr=False)
+    precio_alquiler_1y: float = field(default=None, init=False, repr=False)
+    rentabilidad_1y: float = field(default=None, init=False, repr=False)
+    grow_acu_alquiler_1y: float = field(default=None, init=False, repr=False)
+    grow_acu_venta_1y: float = field(default=None, init=False, repr=False)
+    grow_acu_superficie_venta_1y: float = field(default=None, init=False, repr=False)
     
     # Market statistics - 5y
-    precio_venta_5y: float
-    superficie_venta_5y: float
-    elasticidad_5y: float
-    precio_alquiler_5y: float
-    rentabilidad_5y: float
-    grow_acu_alquiler_5y: float
-    grow_acu_venta_5y: float
-    grow_acu_superficie_venta_5y: float
+    precio_venta_5y: float = field(default=None, init=False, repr=False)
+    superficie_venta_5y: float = field(default=None, init=False, repr=False)
+    elasticidad_5y: float = field(default=None, init=False, repr=False)
+    precio_alquiler_5y: float = field(default=None, init=False, repr=False)
+    rentabilidad_5y: float = field(default=None, init=False, repr=False)
+    grow_acu_alquiler_5y: float = field(default=None, init=False, repr=False)
+    grow_acu_venta_5y: float = field(default=None, init=False, repr=False)
+    grow_acu_superficie_venta_5y: float = field(default=None, init=False, repr=False)
     
     # Market statistics - 10y
-    precio_venta_10y: float
-    superficie_venta_10y: float
-    elasticidad_10y: float
-    precio_alquiler_10y: float
-    rentabilidad_10y: float
-    grow_acu_alquiler_10y: float
-    grow_acu_venta_10y: float
-    grow_acu_superficie_venta_10y: float
+    precio_venta_10y: float = field(default=None, init=False, repr=False)
+    superficie_venta_10y: float = field(default=None, init=False, repr=False)
+    elasticidad_10y: float = field(default=None, init=False, repr=False)
+    precio_alquiler_10y: float = field(default=None, init=False, repr=False)
+    rentabilidad_10y: float = field(default=None, init=False, repr=False)
+    grow_acu_alquiler_10y: float = field(default=None, init=False, repr=False)
+    grow_acu_venta_10y: float = field(default=None, init=False, repr=False)
+    grow_acu_superficie_venta_10y: float = field(default=None, init=False, repr=False)  
     
     # Stars ratings
-    elasticidad_1y_stars: int
-    rentabilidad_1y_stars: int
-    grow_acu_alquiler_1y_stars: int
-    grow_acu_venta_1y_stars: int
-    elasticidad_5y_stars: int
-    rentabilidad_5y_stars: int
-    grow_acu_alquiler_5y_stars: int
-    grow_acu_venta_5y_stars: int
-    elasticidad_10y_stars: int
-    rentabilidad_10y_stars: int
-    grow_acu_alquiler_10y_stars: int
-    grow_acu_venta_10y_stars: int
-    global_score_stars: float
+    elasticidad_1y_stars: int = field(default=None, init=False, repr=False)
+    rentabilidad_1y_stars: int = field(default=None, init=False, repr=False)
+    grow_acu_alquiler_1y_stars: int = field(default=None, init=False, repr=False)
+    grow_acu_venta_1y_stars: int = field(default=None, init=False, repr=False)
+    elasticidad_5y_stars: int = field(default=None, init=False, repr=False)
+    rentabilidad_5y_stars: int = field(default=None, init=False, repr=False)
+    grow_acu_alquiler_5y_stars: int = field(default=None, init=False, repr=False)
+    grow_acu_venta_5y_stars: int = field(default=None, init=False, repr=False)
+    elasticidad_10y_stars: int = field(default=None, init=False, repr=False)
+    rentabilidad_10y_stars: int = field(default=None, init=False, repr=False)
+    grow_acu_alquiler_10y_stars: int = field(default=None, init=False, repr=False)
+    grow_acu_venta_10y_stars: int = field(default=None, init=False, repr=False)
+    global_score_stars: float = field(default=None, init=False, repr=False)
     
     # Property analysis
-    precio_m2: int
-    precio_desv_media: float
-    precio_venta_stars: int
-    precio_alquiler_estimado: float
-    precio_venta_estimado: float
+    precio_m2: int = field(default=None, init=False, repr=False)
+    precio_desv_media: float = field(default=None, init=False, repr=False)
+    precio_venta_stars: int = field(default=None, init=False, repr=False)
+    precio_alquiler_estimado: float = field(default=None, init=False, repr=False)
+    precio_venta_estimado: float = field(default=None, init=False, repr=False)
 
-    @classmethod
-    def from_dict(cls, data: dict):
-        return cls(**data)
+
+    _okupadas_words = ['okupada', 'okupado', 'ocupado', 'ocupada', 'ocupacional', 'sin posesión', 'sin posesion','ilegal']
+    _alquiladas_words = ['alquilado', 'alquilada', 'inquilinos', 'inquilino', 'usufructuarios', 'usufructuario', 'arrendado']
+
+    # Lista de palabras clave para el análisis inmobiliario
+    _single_keywords = [
+        "inversi.n", "oportunidad" ,"rendimiento", "renta.ilidad", "inversores", 'nuda\ propiedad'
+        "rehabilitad.", "metro", 
+        "estacionamiento", "calefacci.n", "la.adero",
+        "terraza", "luminoso", "balc.n", "patio",
+        "bajo", "local", "estudio"
+    ]
+
+    _double_keywords = [
+        "reforma.?", "reformad.", "integral", "c.dula",
+        "baños","banos", "ascensor", "amueblad.","blindad.",
+        "exterior", "comercial"
+    ]
+
+    RX_HAB = re.compile(r'\'(\d+?) hab\.\'')
+    RX_M2 = re.compile(r'\'(\d+?) m²\'')
+    RX_BARRIOS = re.compile(r"([^,]+),[^,]+$")
+    RX_CLEAN_DESCRIPTION = re.compile(r"<.*?>")
+
+    RX_SINGLE_TAG = re.compile(r'\b(?:' + '|'.join(_single_keywords) + r')\b')
+    RX_DOUBLE_TAG = re.compile(r'\b(\w+\s+(?:' + '|'.join(_double_keywords) + r'))\b')
+
+    GLOBAL_SCORE_WEIGHTS = {
+        'precio_venta_stars': 0.6,          # Precio competitivo es el factor más importante
+        'rentabilidad_10y_stars': 0.2,      # Rentabilidad actual
+        'grow_acu_alquiler_10y_stars': 0.1, # Crecimiento histórico de alquileres
+        'grow_acu_venta_10y_stars': 0.1     # Crecimiento histórico de ventas
+    }
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+        # Clean and standardize basic fields
+        self._town = RealtyReport.get_hood(self._town)
+        self._description = RealtyReport.clean_description(self._description)
+        self._type_v = RealtyReport.estandarizar(self._type_v)
+        self._address = RealtyReport.estandarizar(self._address)
+        self.n_hab = RealtyReport.get_n_hab(self._info)
+        self.sup_m2 = RealtyReport.get_sup_m2(self._info)
+        self.disponibilidad = RealtyReport.get_occupation(self._description)
+        self._tags = RealtyReport.extract_tags(self._description)
+
+    def set_indicadores(self, **indicadores):
+        for key, value in indicadores.items():
+            if getattr(self, key, None) is None:
+                setattr(self, key, value)
+
+        self.precio_m2 = RealtyReport.get_price_m2(self._price, self.sup_m2)
+        self.precio_desv_media = RealtyReport.get_price_desv_media(self.precio_m2, self.precio_venta_1y)
+        self.precio_venta_stars = RealtyReport.get_price_stars(self.precio_desv_media)
+        self.precio_alquiler_estimado = RealtyReport.get_price_alquiler_estimado(self.precio_alquiler_1y, self.sup_m2)
+        self.precio_venta_estimado = RealtyReport.get_price_venta_estimado(self.precio_venta_1y, self.sup_m2)
+        self.global_score_stars = RealtyReport.get_global_score_stars(self.precio_venta_stars, self.rentabilidad_10y_stars, self.grow_acu_venta_10y_stars, self.grow_acu_alquiler_10y_stars, self.disponibilidad)
+
+    def match_place(self, places):
+        self.barrio, self.barrio_ratio = RealtyReport.map_place(self.town, places)
+
+    def to_dict(self):
+        return {
+            # Realty
+            'link': self._link,
+            'type_v': self._type_v,
+            'address': self._address,
+            'town': self._town,
+            'price': self._price,
+            'info': self._info,
+            'description': self._description,
+            'price_old': self._price_old,
+            'tags': self._tags,
+            'agent': self._agent,
+            'created': self._created,
+
+            # Property characteristics
+            'n_hab': self.n_hab,
+            'sup_m2': self.sup_m2,
+            'disponibilidad': self.disponibilidad,
+
+            # Location info
+            'barrio': self.barrio,
+            'barrio_ratio': self.barrio_ratio,
+            'id': self.id,
+            'nombre': self.nombre,
+            'sup_id': self.sup_id,
+            'sup_nombre': self.sup_nombre,
+            'tipo': self.tipo,
+
+            # Market statistics - 1y
+            'precio_venta_1y': self.precio_venta_1y,
+            'superficie_venta_1y': self.superficie_venta_1y,
+            'elasticidad_1y': self.elasticidad_1y,
+            'precio_alquiler_1y': self.precio_alquiler_1y,
+            'rentabilidad_1y': self.rentabilidad_1y,
+            'grow_acu_alquiler_1y': self.grow_acu_alquiler_1y,
+            'grow_acu_venta_1y': self.grow_acu_venta_1y,
+            'grow_acu_superficie_venta_1y': self.grow_acu_superficie_venta_1y,
+
+            # Market statistics - 5y
+            'precio_venta_5y': self.precio_venta_5y,
+            'superficie_venta_5y': self.superficie_venta_5y,
+            'elasticidad_5y': self.elasticidad_5y,
+            'precio_alquiler_5y': self.precio_alquiler_5y,
+            'rentabilidad_5y': self.rentabilidad_5y,
+            'grow_acu_alquiler_5y': self.grow_acu_alquiler_5y,
+            'grow_acu_venta_5y': self.grow_acu_venta_5y,
+            'grow_acu_superficie_venta_5y': self.grow_acu_superficie_venta_5y,
+
+            # Market statistics - 10y
+            'precio_venta_10y': self.precio_venta_10y,
+            'superficie_venta_10y': self.superficie_venta_10y,
+            'elasticidad_10y': self.elasticidad_10y,
+            'precio_alquiler_10y': self.precio_alquiler_10y,
+            'rentabilidad_10y': self.rentabilidad_10y,
+            'grow_acu_alquiler_10y': self.grow_acu_alquiler_10y,
+            'grow_acu_venta_10y': self.grow_acu_venta_10y,
+            'grow_acu_superficie_venta_10y': self.grow_acu_superficie_venta_10y,
+
+            # Stars ratings
+            'elasticidad_1y_stars': self.elasticidad_1y_stars,
+            'rentabilidad_1y_stars': self.rentabilidad_1y_stars,
+            'grow_acu_alquiler_1y_stars': self.grow_acu_alquiler_1y_stars,
+            'grow_acu_venta_1y_stars': self.grow_acu_venta_1y_stars,
+            'elasticidad_5y_stars': self.elasticidad_5y_stars,
+            'rentabilidad_5y_stars': self.rentabilidad_5y_stars,
+            'grow_acu_alquiler_5y_stars': self.grow_acu_alquiler_5y_stars,
+            'grow_acu_venta_5y_stars': self.grow_acu_venta_5y_stars,
+            'elasticidad_10y_stars': self.elasticidad_10y_stars,
+            'rentabilidad_10y_stars': self.rentabilidad_10y_stars,
+            'grow_acu_alquiler_10y_stars': self.grow_acu_alquiler_10y_stars,
+            'grow_acu_venta_10y_stars': self.grow_acu_venta_10y_stars,
+            'global_score_stars': self.global_score_stars,
     
-    
-    def __str__(self):
-        def stars_to_emoji(stars):
-            if isinstance(stars, (int, float)):
-                full_stars = int(stars)
-                return "⭐" * full_stars
-            return ""
+            # Property analysis
+            'precio_m2': self.precio_m2,
+            'precio_desv_media': self.precio_desv_media,
+            'precio_venta_stars': self.precio_venta_stars,
+            'precio_alquiler_estimado': self.precio_alquiler_estimado,
+            'precio_venta_estimado': self.precio_venta_estimado,
+        }
 
-        # Split tags and add emoji
-        tags_list = self.tags.split(", ") if self.tags else []
-        formatted_tags = [f"🏷️ {tag}" for tag in tags_list]
-        tags_str = " ".join(formatted_tags)
+    @staticmethod
+    def stars_to_emoji(stars):
+        if isinstance(stars, (int, float)):
+            full_stars = int(stars)
+            return "⭐" * full_stars
+        return ""
 
-        # Get availability emoji
-        availability_emoji = {
+    def availability_to_emoji(availability):
+        return {
             'disponible': '✅',
             'alquilada': '⚠️',
             'ocupada': '🚨'
-        }.get(self.disponibilidad.lower(), '')
+        }.get(str(availability).lower(), '')
 
-        markdown = f"""
-        **{self.type_v} En [{self.address.title()}]({self.link})** {stars_to_emoji(self.global_score_stars)}
 
-        ### Análisis de Inversión
+    def tags_to_emoji(self):
+        tags_list = self.tags if self.tags else []
+        formatted_tags = [f"🏷️ {tag}" for tag in tags_list]
+        tags_str = " ".join(formatted_tags)
+        return tags_str
+    
+    def __str__(self):
+        return str(self.to_dict())
 
-        - **Estrellas Globales:** {stars_to_emoji(self.global_score_stars)} ({self.global_score_stars})
-        - **Estrellas de Precio:** {stars_to_emoji(self.precio_venta_stars)} ({self.precio_venta_stars})
-        - **Estrellas de Rentabilidad:** {stars_to_emoji(self.rentabilidad_10y_stars)} ({self.rentabilidad_10y_stars})
-        - **Rentabilidad:** {self.rentabilidad_10y *100:.2f} %
 
-        ### Información Básica
+    @staticmethod
+    def estandarizar(x):
+        """ Estandariza el nombre de un barrio o distrito:
+            - Quita entidades HTML y UTF-8
+            - Normaliza el texto a forma NFD (descompone caracteres con diacríticos)
+            - Filtra caracteres con categoría de diacrítico (Mn)
+            - Pasa a minúsculas
+            - Reemplaza guiones por espacios
+            - Quita espacios dobles
+        """
+        # Unescape HTML and UTF-8 entities
+        x = html.unescape(x)
+        # Normalizar el texto a forma NFD (descompone caracteres con diacríticos)
+        x = unicodedata.normalize('NFD', x)
+        # Filtrar caracteres con categoría de diacrítico (Mn)
+        x = ''.join(c for c in x if unicodedata.category(c) != 'Mn')
+        return x.split(' - AEI ')[0].replace('-', ' ').replace('  ', ' ').lower()
 
-        - **precio:** {self.price} €
-        - **metros cuadrados:** {self.sup_m2} m2
-        - **precio_m2:** {self.precio_m2} €/m2 ({stars_to_emoji(self.precio_venta_stars)}) ya que es un {self.precio_desv_media*100:.0f}% del precio medio de venta de {self.barrio} : {self.precio_venta_1y} €/m2
-        - **alquiler estimado:** {self.precio_alquiler_estimado} €/mes
-        - **venta estimada:** {self.precio_venta_estimado} €
-        - **habitaciones:** {self.n_hab}
-        - **descripcion:** ```{self.description}```
-        - **tags:** {tags_str}
-        - **barrio:** {self.barrio}
-        - **creado:** {self.created}
-        - **disponibilidad:** ```{self.disponibilidad}``` {availability_emoji}
-        """        
-        return markdown
+    @staticmethod
+    def get_hood(x):
+        x1 = ''.join(RealtyReport.RX_BARRIOS.findall(x)).strip() 
+        x1 = x1 if len(x1)>1 else x
+        return RealtyReport.estandarizar(x1)
+
+    @staticmethod
+    def clean_description(text: str) -> str:
+        return RealtyReport.estandarizar(RealtyReport.RX_CLEAN_DESCRIPTION.sub('', text.lower() if text else ''))
+    
+    @staticmethod
+    def get_n_hab(text) -> Optional[int]:
+        # Handle None or non-string input
+        if text is None:
+            return None
+        
+        # Convert to string if not already
+        text = str(text)
+        
+        # Extract number of rooms
+        matches = RealtyReport.RX_HAB.findall(text)
+        if matches:
+            return int(''.join(matches))
+        return None
+    
+    @staticmethod
+    def get_sup_m2(text) -> Optional[int]:
+        # Handle None or non-string input
+        if text is None:
+            return None
+        
+        # Convert to string if not already
+        text = str(text)
+        
+        # Extract square meters
+        matches = RealtyReport.RX_M2.findall(text)
+        if matches:
+            return int(min(matches))
+        return None
+    
+    @staticmethod
+    def get_occupation(text: str) -> str:
+        if any(word.lower() in text.lower() for word in RealtyReport._okupadas_words): return 'ocupada'
+        if any(word.lower() in text.lower() for word in RealtyReport._alquiladas_words): return 'alquilada'
+        return 'disponible'
+    
+    @staticmethod
+    def extract_tags(description: str) -> list[str]:
+        tags = RealtyReport.RX_SINGLE_TAG.findall(description) + RealtyReport.RX_DOUBLE_TAG.findall(description)
+        tags = list(dict.fromkeys(tags))
+        return tags
+    
+    @staticmethod
+    def map_place(x, places):
+        if x is None: return None
+        match = None
+        best = 0
+        for y in places:
+            ratio = SequenceMatcher(None, x, y).ratio()
+            if ratio == 1:
+                return (y, ratio)
+            if ratio > best:
+                best = ratio
+                match = y
+        return (match if best > 0.5 else None, round(best,2))
+    
+    @staticmethod
+    def get_price_m2(price, sup_m2) -> Optional[int]:
+        # Handle None values
+        if price is None or sup_m2 is None or sup_m2 == 0:
+            return None
+        
+        return int(price / sup_m2)
+    
+    @staticmethod
+    def get_price_desv_media(price_m2, price_venta_1y) -> Optional[float]:
+        # Handle None values or zero division
+        if price_m2 is None or price_venta_1y is None or price_venta_1y == 0:
+            return None
+        
+        return round(price_m2 / price_venta_1y, 2)
+    
+    @staticmethod
+    def get_price_stars(price_desv_media) -> Optional[int]:
+        # Handle None values
+        if price_desv_media is None:
+            return None
+        
+        if price_desv_media < 0.25: return 5
+        if price_desv_media < 0.40: return 4
+        if price_desv_media < 0.75: return 3
+        if price_desv_media < 1.00: return 2
+        return 1
+    
+    @staticmethod
+    def get_price_alquiler_estimado(precio_alquiler_1y, sup_m2) -> Optional[int]:
+        # Handle None values
+        if precio_alquiler_1y is None or sup_m2 is None:
+            return None
+        
+        return int(precio_alquiler_1y * sup_m2)
+    
+    @staticmethod
+    def get_price_venta_estimado(precio_venta_1y, sup_m2) -> Optional[int]:
+        # Handle None values
+        if precio_venta_1y is None or sup_m2 is None:
+            return None
+        
+        return int(precio_venta_1y * sup_m2)
+
+    @staticmethod
+    def get_global_score_stars(precio_venta_stars, rentabilidad_10y_stars, grow_acu_venta_10y_stars, grow_acu_alquiler_10y_stars, disponibilidad) -> Optional[float]:
+        # Handle None values
+        if any(x is None for x in [precio_venta_stars, rentabilidad_10y_stars, grow_acu_venta_10y_stars, grow_acu_alquiler_10y_stars]):
+            return None
+
+        score = round((precio_venta_stars * RealtyReport.GLOBAL_SCORE_WEIGHTS['precio_venta_stars'] + 
+                      rentabilidad_10y_stars * RealtyReport.GLOBAL_SCORE_WEIGHTS['rentabilidad_10y_stars'] + 
+                      grow_acu_venta_10y_stars * RealtyReport.GLOBAL_SCORE_WEIGHTS['grow_acu_venta_10y_stars'] + 
+                      grow_acu_alquiler_10y_stars * RealtyReport.GLOBAL_SCORE_WEIGHTS['grow_acu_alquiler_10y_stars']), 1)
+
+        return score - 1 if disponibilidad == 'ocupada' else score
+
     @staticmethod
     def get_example():
         data = {
-            'link': '/inmueble/101395290/',
-            'type_v': 'estudio',
-            'address': 'calle de la mare de deu dels angels, la teixonera, barcelona',
-            'town': 'la teixonera',
-            'price': 98000,
-            'price_old': None,
-            'info': "['94 m²', 'Bajo exterior sin ascensor']",
-            'description': "cerca parc creueta del coll y junto hospital vall d'hebron y hospital san rafael. calle mare deu dels angels, amplio local de 90 metros aproximadamente, diafano, apto para loft vivienda, entrada por calle y vestibulo, cocina, bano completo y dos aseos, puerta y ventana a la calle, comunicado por metro linea l5 y autobu",
-            'tags': 'Loft, local, metro',
+            'link': 'https://example.com/inmueble/123456/',
+            'address': 'calle test 123',
+            'town': 'Sant Andreu, Barcelona',
+            'price': 250000,
+            'description': "Piso en venta en<br> Barcelona reformado y con terraza ocupada",
+            'created': '2024-03-20 10:00:00',
+            'type_v': 'piso',
+            'price_old': '260000.0',
+            'info': "['80 m²', '3 hab.']",
+            'tags': 'Reformado, Exterior',
             'agent': None,
-            'created': '2024-11-20 14:43:11',
             'n_hab': None,
             'sup_m2': 94,
             'disponibilidad': 'disponible',
@@ -186,4 +454,4 @@ class RealtyReport(Realty):
             'precio_venta_estimado': 246266.56740000003,
             'global_score_stars': 3.6
         }
-        return RealtyReport.from_dict(data)
+        return RealtyReport(**data)
