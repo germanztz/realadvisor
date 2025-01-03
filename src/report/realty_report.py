@@ -80,7 +80,7 @@ class RealtyReport(Realty):
 
     # Lista de palabras clave para el análisis inmobiliario
     _single_keywords = [
-        "inversi.n", "oportunidad" ,"rendimiento", "renta.ilidad", "inversores", 'nuda\ propiedad'
+        "inversi.n", "oportunidad" ,"rendimiento", "renta.ilidad", "inversores", 'nuda'
         "rehabilitad.", "metro", 
         "estacionamiento", "calefacci.n", "la.adero",
         "terraza", "luminoso", "balc.n", "patio",

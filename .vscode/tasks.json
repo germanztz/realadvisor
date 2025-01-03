@@ -4,7 +4,7 @@
         {
             "label": "Docker: Rebuild and Run Gradio",
             "type": "shell",
-            "command": "./run.sh",
+            "command": "./run.sh --debug",
             "group": {
                 "kind": "build",
                 "isDefault": true
