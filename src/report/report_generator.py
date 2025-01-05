@@ -81,9 +81,9 @@ class ReportGenerator:
         
         return template.render(
             **realty_report.to_dict(),
-            stars_to_emoji_string=realty_report.stars_to_emoji(realty_report.global_score_stars),
-            tags_to_emoji_string=realty_report.tags_to_emoji(),
-            availability_to_emoji_string=realty_report.availability_to_emoji())
+            stars_to_emoji_string=self.stars_to_emoji(realty_report.global_score_stars),
+            tags_to_emoji_string=self.tags_to_emoji(realty_report.tags),
+            availability_to_emoji_string=self.availability_to_emoji(realty_report.disponibilidad))
 
     def load_indicators(self, realty_report: RealtyReport, indicators_file: str):
         indicadores = pd.read_csv(indicators_file)
@@ -92,6 +92,26 @@ class ReportGenerator:
         indicadores = indicadores[indicadores['nombre'] == realty_report.barrio].sort_values(by='tipo', ascending=True)
         for index, row in indicadores.iterrows():
             realty_report.set_indicadores(**row.to_dict())
+
+    def stars_to_emoji(self, stars):
+        if isinstance(stars, (int, float)):
+            full_stars = int(stars)
+            return "⭐" * full_stars
+        return ""
+
+    def availability_to_emoji(self, availability):
+        return {
+            'disponible': '✅',
+            'alquilada': '⚠️',
+            'ocupada': '🚨'
+        }.get(str(availability).lower(), '')
+
+
+    def tags_to_emoji(self, tags):
+        tags = tags if tags else []
+        tags = [f"🏷️ {tag}" for tag in tags]
+        tags = " ".join(tags)
+        return tags
 
 if __name__ == "__main__":
     # Example usage

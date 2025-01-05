@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Inversión Inmobiliaria</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            /* background-color: #f4f4f4; */
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 90%;
+            margin: 0 auto;
+            max-width: 800px;
+            /* background-color: #fff; */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3 {
+            color: #2C3E50;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .info-section {
+            margin-bottom: 20px;
+        }
+        .info-section p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        .info-section strong {
+            color: #2980B9;
+        }
+        .stars {
+            font-size: 1.2em;
+        }
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tag {
+            background-color: #3498db;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        .description {
+            /* font-style: italic; */
+            /* margin-top: 15px; */
+            /* background-color: #ecf0f1; */
+            padding: 15px;
+            /* border-left: 5px solid #2980B9; */
+        }
+        .availability {
+            font-weight: bold;
+            color: #27ae60;
+        }
+        .availability.unavailable {
+            color: #e74c3c;
+        }
+        .price-info {
+            display: flex;
+            justify-content: space-between;
+        }
+        .price-info div {
+            width: 48%;
+        }
+        .price-info div span {
+            font-weight: bold;
+            color: #e67e22;
+        }
+        .highlight {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Informe de Inversión Inmobiliaria</h1>
+        
+        <h2>{{ type_v }} en <a href="{{ link }}" target="_blank" style="color: #2980B9;">{{ address|title }}</a></h2>
+        <p class="stars">{{ stars_to_emoji_string }}</p>
+
+        <h3>Análisis de Inversión</h3>
+        <div class="info-section">
+            <p><strong>Estrellas Globales:</strong> {{ stars_to_emoji_string }} ({{ global_score_stars }})</p>
+            <p><strong>Estrellas de Precio:</strong> {{ stars_to_emoji_string }} ({{ precio_venta_stars }})</p>
+            <p><strong>Estrellas de Rentabilidad:</strong> {{ stars_to_emoji_string }} ({{ rentabilidad_10y_stars }})</p>
+            <p><strong>Rentabilidad:</strong> {{ (rentabilidad_10y * 100) }} %</p>
+        </div>
+
+        <h3>Información Básica</h3>
+        <div class="info-section">
+            <p><strong>Precio:</strong> {{ price }} €</p>
+            <p><strong>Metros cuadrados:</strong> {{ sup_m2 }} m²</p>
+            <p><strong>Precio por m²:</strong> {{ precio_m2 }} €/m² ({{ stars_to_emoji_string }}) ya que es un <span class="highlight">{{ (precio_desv_media * 100) }}%</span> del precio medio de venta en {{ barrio }}: {{ precio_venta_1y }} €/m²</p>
+            <p><strong>Alquiler estimado:</strong> {{ precio_alquiler_estimado }} €/mes</p>
+            <p><strong>Venta estimada:</strong> {{ precio_venta_estimado }} €</p>
+            <p><strong>Habitaciones:</strong> {{ n_hab }}</p>
+            <strong>Descripción:</strong><br>
+            <div class="description">
+                {{ description }}
+            </div>
+            <p><strong>Tags:</strong></p>
+            <div class="tags">
+                {{ tags_to_emoji_string }}
+            </div>
+            <p><strong>Barrio:</strong> {{ barrio }}</p>
+            <p><strong>Creado:</strong> {{ created }}</p>
+            <p><strong>Disponibilidad:</strong> <span class="availability">{{ disponibilidad }}</span> {{ availability_to_emoji_string }}</p>
+        </div>
+    </div>
+
+</body>
+</html>

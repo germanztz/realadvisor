@@ -49,7 +49,6 @@ class WebScraper:
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
         self.logger.addHandler(console_handler)
-
         self.logger.info(f'Init WebScraper')
 
 
@@ -138,8 +137,6 @@ class WebScraper:
         """
         try:
             ret = fields_rx[field_name].findall(html)
-            if field_name == 'description':
-                self.logger.debug(f'description: {fields_rx[field_name]}')
             ret = ret[0] if len(ret) == 1 else ret    
             ret = None if len(ret) == 0 else ret    
             if 'sub' in field_name and not ret is None:

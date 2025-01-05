@@ -4,7 +4,9 @@ from difflib import SequenceMatcher
 import html
 import re
 import unicodedata
-from src.realty import Realty
+import sys
+sys.path.append('src')
+from realty import Realty
 
 @dataclass
 class RealtyReport(Realty):
@@ -93,10 +95,10 @@ class RealtyReport(Realty):
         "exterior", "comercial"
     ]
 
-    RX_HAB = re.compile(r'\'(\d+?) hab\.\'')
-    RX_M2 = re.compile(r'\'(\d+?) m²\'')
+    RX_HAB = re.compile(r'(\d+?) hab\.')
+    RX_M2 = re.compile(r'(\d+?) m²')
     RX_BARRIOS = re.compile(r"([^,]+),[^,]+$")
-    RX_CLEAN_DESCRIPTION = re.compile(r"<.*?>")
+    RX_HTML_TAG = re.compile(r"<.*?>")
 
     RX_SINGLE_TAG = re.compile(r'\b(?:' + '|'.join(_single_keywords) + r')\b')
     RX_DOUBLE_TAG = re.compile(r'\b(\w+\s+(?:' + '|'.join(_double_keywords) + r'))\b')
@@ -119,8 +121,8 @@ class RealtyReport(Realty):
         self._description = RealtyReport.clean_description(self._description)
         self._type_v = RealtyReport.estandarizar(self._type_v)
         self._address = RealtyReport.estandarizar(self._address)
-        self.n_hab = RealtyReport.get_n_hab(self._info)
-        self.sup_m2 = RealtyReport.get_sup_m2(self._info)
+        self.n_hab = RealtyReport.find_min_int(self._info, RealtyReport.RX_HAB)
+        self.sup_m2 = RealtyReport.find_min_int(self._info, RealtyReport.RX_M2)
         self.disponibilidad = RealtyReport.get_occupation(self._description)
         self._tags = RealtyReport.extract_tags(self._description)
 
@@ -220,31 +222,9 @@ class RealtyReport(Realty):
             'precio_alquiler_estimado': self.precio_alquiler_estimado,
             'precio_venta_estimado': self.precio_venta_estimado,
         }
-
-    @staticmethod
-    def stars_to_emoji(stars):
-        if isinstance(stars, (int, float)):
-            full_stars = int(stars)
-            return "⭐" * full_stars
-        return ""
-
-    def availability_to_emoji(availability):
-        return {
-            'disponible': '✅',
-            'alquilada': '⚠️',
-            'ocupada': '🚨'
-        }.get(str(availability).lower(), '')
-
-
-    def tags_to_emoji(self):
-        tags_list = self.tags if self.tags else []
-        formatted_tags = [f"🏷️ {tag}" for tag in tags_list]
-        tags_str = " ".join(formatted_tags)
-        return tags_str
     
     def __str__(self):
         return str(self.to_dict())
-
 
     @staticmethod
     def estandarizar(x):
@@ -272,34 +252,19 @@ class RealtyReport(Realty):
 
     @staticmethod
     def clean_description(text: str) -> str:
-        return RealtyReport.estandarizar(RealtyReport.RX_CLEAN_DESCRIPTION.sub('', text.lower() if text else ''))
+        return RealtyReport.estandarizar(RealtyReport.RX_HTML_TAG.sub('', text.lower() if text else ''))
     
     @staticmethod
-    def get_n_hab(text) -> Optional[int]:
+    def find_min_int(text, rx) -> Optional[int]:
         # Handle None or non-string input
         if text is None:
             return None
         
         # Convert to string if not already
         text = str(text)
-        
-        # Extract number of rooms
-        matches = RealtyReport.RX_HAB.findall(text)
-        if matches:
-            return int(''.join(matches))
-        return None
-    
-    @staticmethod
-    def get_sup_m2(text) -> Optional[int]:
-        # Handle None or non-string input
-        if text is None:
-            return None
-        
-        # Convert to string if not already
-        text = str(text)
-        
+
         # Extract square meters
-        matches = RealtyReport.RX_M2.findall(text)
+        matches = rx.findall(text)
         if matches:
             return int(min(matches))
         return None

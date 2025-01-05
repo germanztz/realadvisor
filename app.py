@@ -27,11 +27,13 @@ detail_item_fields_rx = {
 
 
 def generate_report(url):
-    webScraper = WebScraper()
-    data = webScraper.scrap_realty(url, detail_item_fields_rx, None)
-    realty = Realty(**data)
+
+    realty = Realty(**Realty.get_sample_data())
+    # webScraper = WebScraper()
+    # data = webScraper.scrap_realty(url, detail_item_fields_rx, None)
+    # realty = Realty(**data)
     report_generator = ReportGenerator()
-    report = report_generator.generate_report(realty, 'datasets/gen_indicadores.csv', 'report_template.md')
+    report = report_generator.generate_report(realty, 'datasets/gen_indicadores.csv', 'report_template2.html')
     return report
 
 # Create the Gradio interface with a single column layout
@@ -40,9 +42,10 @@ with gr.Blocks() as demo:
         gr.Image(value="public/images/logo.png", scale=0, type="pil")
         gr.Markdown("# Real Advisor \n ## Informe de Inversión Inmobiliaria")
     
-    output = gr.Markdown(label="Informe de Inversión")
+    output = gr.HTML(label="Informe de Inversión")
     url_input = gr.Textbox(label="Introduce la URL del inmueble y haz clic en Generar para generar el informe")
     submit_btn = gr.Button("Generar Informe")
+    examples = gr.Examples(examples=["https://www.idealista.com/inmueble/106576974/"], label="Ejemplos", inputs=url_input)
     
     submit_btn.click(
         fn=generate_report,
