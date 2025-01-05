@@ -1,6 +1,6 @@
 import sys
 import os
-
+from pathlib import Path
 from datetime import datetime
 import pandas as pd
 import pdfkit
@@ -10,13 +10,19 @@ sys.path.append('src')
 from realty import Realty
 
 class ReportGenerator:
-    def __init__(self, template_path: str = 'report_template.html'):
+    def __init__(self, indicators_path: str = 'gen_indicadores.csv', template_path: str = 'report_template.html', output_dir: str = 'reports'):
         # Get the directory where this script is located
         current_dir = os.path.dirname(os.path.abspath(__file__))
         # Initialize Jinja environment with the correct template directory
         self.env = Environment(loader=FileSystemLoader(current_dir))
         self.template = self.env.get_template(template_path)
-        
+        self.indicadores_path = indicators_path
+
+        self.output_dir = output_dir 
+        # Create output directory if it doesn't exist
+        os.makedirs(output_dir, exist_ok=True)
+        os.chmod(output_dir, 0o777)
+
     def generate_report_html(self, property_report: RealtyReport):
         """
         Generate HTML and optionally PDF reports for a property
@@ -42,17 +48,14 @@ class ReportGenerator:
         html_content = self.template.render(**data)
         return html_content
     
-    def generate_report_file(self, property_report: RealtyReport, output_dir: str = 'reports', generate_pdf: bool = True):
-        # Create output directory if it doesn't exist
-        output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), output_dir)
-        os.makedirs(output_dir, exist_ok=True)
+    def generate_report_file(self, property_report: RealtyReport, generate_pdf: bool = True):
 
         # Create filenames
         html_content = self.generate_report_html(property_report)
 
         base_filename = f"property_report_{property_report.barrio}"
-        html_path = os.path.join(output_dir, f"{base_filename}.html")
-        pdf_path = os.path.join(output_dir, f"{base_filename}.pdf") if generate_pdf else None
+        html_path = os.path.join(self.output_dir, f"{base_filename}.html")
+        pdf_path = os.path.join(self.output_dir, f"{base_filename}.pdf") if generate_pdf else None
         
         # Save HTML
         with open(html_path, 'w', encoding='utf-8') as f:
@@ -74,19 +77,36 @@ class ReportGenerator:
             
         return html_path, pdf_path
 
-    def generate_report(self, realty: Realty, indicators_file: str, template_path: str):
+    def generate_report(self, realty: Realty, template_path: str):
         realty_report = RealtyReport(**realty.to_dict())
-        self.load_indicators(realty_report, indicators_file)
+        self.load_indicators(realty_report)
         template = self.env.get_template(template_path)
+        # get extension of the template file
+        template_extension = Path(template_path).suffix
         
-        return template.render(
+        html_content = template.render(
             **realty_report.to_dict(),
             stars_to_emoji_string=self.stars_to_emoji(realty_report.global_score_stars),
             tags_to_emoji_string=self.tags_to_emoji(realty_report.tags),
             availability_to_emoji_string=self.availability_to_emoji(realty_report.disponibilidad))
 
-    def load_indicators(self, realty_report: RealtyReport, indicators_file: str):
-        indicadores = pd.read_csv(indicators_file)
+        base_filename = f"property_report_{realty_report.barrio}"
+        html_path = os.path.join(self.output_dir, f"{base_filename}{template_extension}")
+
+        # Save HTML
+        with open(html_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        os.chmod(html_path, 0o777)
+
+        return html_content
+
+
+    def load_indicators(self, realty_report: RealtyReport):
+        # check if file exists
+        if not os.path.exists(self.indicadores_path):
+            raise FileNotFoundError(f"No se encontró el archivo de indicadores en: {self.indicadores_path}")
+
+        indicadores = pd.read_csv(self.indicadores_path)
         places = indicadores['nombre'].unique().tolist()
         realty_report.match_place(places)
         indicadores = indicadores[indicadores['nombre'] == realty_report.barrio].sort_values(by='tipo', ascending=True)
