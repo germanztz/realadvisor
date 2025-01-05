@@ -150,7 +150,6 @@ class ReportGenerator:
         img64 = self.plot_dual_axis(bcn_precios[(bcn_precios['nombre'] == realty_report.nombre) & (bcn_precios['tipo'] == realty_report.tipo)], 'mes', 'precio_alquiler', 'precio_venta', realty_report.nombre)
         return img64
 
-
     @staticmethod
     def plot_dual_axis(df, x_col, y1_col, y2_col, title):
         """
@@ -192,14 +191,14 @@ class ReportGenerator:
         fig, ax1 = plt.subplots(figsize=(16, 6))
 
         # Plot first line
-        sns.lineplot(data=df_clean, x=x_col, y=y1_col, ax=ax1, color=COLOR_LINE_1, label=y1_col)
-        ax1.set_ylabel(y1_col, color=COLOR_LINE_1)
+        sns.lineplot(data=df_clean, x=x_col, y=y1_col, ax=ax1, color=COLOR_LINE_1, label=y1_col.replace('_', ' ').title())
+        ax1.set_ylabel(y1_col.replace('_', ' ').title(), color=COLOR_LINE_1)
         ax1.tick_params(axis="y", labelcolor=COLOR_LINE_1)
 
         # Plot second line
         ax2 = ax1.twinx()
-        sns.lineplot(data=df_clean, x=x_col, y=y2_col, ax=ax2, color=COLOR_LINE_2, label=y2_col)
-        ax2.set_ylabel(y2_col, color=COLOR_LINE_2)
+        sns.lineplot(data=df_clean, x=x_col, y=y2_col, ax=ax2, color=COLOR_LINE_2, label=y2_col.replace('_', ' ').title())
+        ax2.set_ylabel(y2_col.replace('_', ' ').title(), color=COLOR_LINE_2)
         ax2.tick_params(axis="y", labelcolor=COLOR_LINE_2)
 
         # Add title and labels
@@ -212,12 +211,12 @@ class ReportGenerator:
         # Trend line for first axis
         z1 = np.polyfit(x_nums, df_clean[y1_col], 3)
         p1 = np.poly1d(z1)
-        ax1.plot(df_clean[x_col], p1(x_nums), COLOR_LINE_1, linestyle='--', alpha=0.8, label=f"Tendencia {y1_col}")
+        ax1.plot(df_clean[x_col], p1(x_nums), COLOR_LINE_1, linestyle='--', alpha=0.8, label=f"Tendencia {y1_col.replace('_', ' ').title()}")
 
         # Trend line for second axis
         z2 = np.polyfit(x_nums, df_clean[y2_col], 3)
         p2 = np.poly1d(z2)
-        ax2.plot(df_clean[x_col], p2(x_nums), COLOR_LINE_2, linestyle='--', alpha=0.8, label=f"Tendencia {y2_col}")
+        ax2.plot(df_clean[x_col], p2(x_nums), COLOR_LINE_2, linestyle='--', alpha=0.8, label=f"Tendencia {y2_col.replace('_', ' ').title()}")
 
         # Adjust legends
         lines1, labels1 = ax1.get_legend_handles_labels()
@@ -225,7 +224,7 @@ class ReportGenerator:
         ax2.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
         ax1.get_legend().remove()
         # Hide legend
-        ax2.get_legend().remove()
+        # ax2.get_legend().remove()
 
         # Hide grid
         ax1.grid(False)
