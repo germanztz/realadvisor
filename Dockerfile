@@ -8,6 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    wkhtmltopdf \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only requirements first to leverage Docker cache

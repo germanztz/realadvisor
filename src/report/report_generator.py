@@ -104,14 +104,29 @@ class ReportGenerator:
 
         base_filename = f"property_report_{realty_report.barrio}"
         html_path = os.path.join(self.output_dir, f"{base_filename}{template_extension}")
-
+        pdf_path = os.path.join(self.output_dir, f"{base_filename}.pdf")
+        
         # Save HTML
         with open(html_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
+            
         os.chmod(html_path, 0o777)
 
-        return html_content
+        # Generate PDF if requested
+        # try:
+        pdfkit.from_file(html_path, pdf_path)
+        os.chmod(pdf_path, 0o777)
+        # except OSError as e:
+        #     print("Error: wkhtmltopdf no está instalado. Por favor, instálalo:")
+        #     print("Ubuntu/Debian: sudo apt-get install wkhtmltopdf")
+        #     print("macOS: brew install wkhtmltopdf")
+        #     print("Windows: descarga desde https://wkhtmltopdf.org/downloads.html")
+        #     pdf_path = None
+        # except Exception as e:
+        #     print(f"Error generando PDF: {e}")
+        #     pdf_path = None
 
+        return html_content
 
     def load_indicators(self, realty_report: RealtyReport):
         # check if file exists
