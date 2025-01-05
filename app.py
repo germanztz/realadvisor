@@ -32,7 +32,7 @@ def generate_report(url):
     # webScraper = WebScraper()
     # data = webScraper.scrap_realty(url, detail_item_fields_rx, None)
     # realty = Realty(**data)
-    report_generator = ReportGenerator(indicators_path='datasets/gen_indicadores.csv', output_dir='reports')
+    report_generator = ReportGenerator(datasets_path='datasets', output_dir='reports')
     report = report_generator.generate_report(realty, 'report_template2.html')
     return report
 

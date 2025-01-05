@@ -106,7 +106,6 @@
             <p><strong>Estrellas de Rentabilidad:</strong> {{ stars_to_emoji_string }} ({{ rentabilidad_10y_stars }})</p>
             <p><strong>Rentabilidad:</strong> {{ (rentabilidad_10y * 100) }} %</p>
         </div>
-
         <h3>Información Básica</h3>
         <div class="info-section">
             <p><strong>Precio:</strong> {{ price }} €</p>
@@ -127,6 +126,7 @@
             <p><strong>Creado:</strong> {{ created }}</p>
             <p><strong>Disponibilidad:</strong> <span class="availability">{{ disponibilidad }}</span> {{ availability_to_emoji_string }}</p>
         </div>
+        <img src="data:image/png;base64,{{ grafico1_base64 }}">
     </div>
 
 </body>

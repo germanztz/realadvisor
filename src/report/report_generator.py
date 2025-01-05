@@ -2,21 +2,31 @@ import sys
 import os
 from pathlib import Path
 from datetime import datetime
+
 import pandas as pd
+import numpy as np # type: ignore
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 import pdfkit
 from jinja2 import Environment, FileSystemLoader
-from realty_report import RealtyReport
 sys.path.append('src')
+sys.path.append('src/report')
+from realty_report import RealtyReport
 from realty import Realty
+import base64
+from io import BytesIO
 
 class ReportGenerator:
-    def __init__(self, indicators_path: str = 'gen_indicadores.csv', template_path: str = 'report_template.html', output_dir: str = 'reports'):
+    def __init__(self, datasets_path: str = 'datasets', template_path: str = 'report_template.html', output_dir: str = 'reports'):
         # Get the directory where this script is located
         current_dir = os.path.dirname(os.path.abspath(__file__))
         # Initialize Jinja environment with the correct template directory
         self.env = Environment(loader=FileSystemLoader(current_dir))
         self.template = self.env.get_template(template_path)
-        self.indicadores_path = indicators_path
+        self.precios_path = os.path.join(datasets_path, 'gen_precios.csv')
+        self.indicadores_path = os.path.join(datasets_path, 'gen_indicadores.csv')
+        self.informe_path = os.path.join(datasets_path, 'gen_informe.csv')
 
         self.output_dir = output_dir 
         # Create output directory if it doesn't exist
@@ -77,7 +87,7 @@ class ReportGenerator:
             
         return html_path, pdf_path
 
-    def generate_report(self, realty: Realty, template_path: str):
+    def generate_report(self, realty: Realty, template_path: str = 'report_template2.html'):
         realty_report = RealtyReport(**realty.to_dict())
         self.load_indicators(realty_report)
         template = self.env.get_template(template_path)
@@ -88,7 +98,9 @@ class ReportGenerator:
             **realty_report.to_dict(),
             stars_to_emoji_string=self.stars_to_emoji(realty_report.global_score_stars),
             tags_to_emoji_string=self.tags_to_emoji(realty_report.tags),
-            availability_to_emoji_string=self.availability_to_emoji(realty_report.disponibilidad))
+            availability_to_emoji_string=self.availability_to_emoji(realty_report.disponibilidad),
+            grafico1_base64=self.generate_grafico1(realty_report),
+            )
 
         base_filename = f"property_report_{realty_report.barrio}"
         html_path = os.path.join(self.output_dir, f"{base_filename}{template_extension}")
@@ -126,12 +138,113 @@ class ReportGenerator:
             'ocupada': '🚨'
         }.get(str(availability).lower(), '')
 
-
     def tags_to_emoji(self, tags):
         tags = tags if tags else []
         tags = [f"🏷️ {tag}" for tag in tags]
         tags = " ".join(tags)
         return tags
+
+    def generate_grafico1(self, realty_report: RealtyReport):
+        bcn_precios = pd.read_csv(self.precios_path)
+        bcn_precios['mes'] = pd.to_datetime(bcn_precios['mes'])
+        img64 = self.plot_dual_axis(bcn_precios[(bcn_precios['nombre'] == realty_report.nombre) & (bcn_precios['tipo'] == realty_report.tipo)], 'mes', 'precio_alquiler', 'precio_venta', realty_report.nombre)
+        return img64
+
+
+    @staticmethod
+    def plot_dual_axis(df, x_col, y1_col, y2_col, title):
+        """
+        Creates a dual-axis plot showing two time series with trend lines.
+
+        Parameters:
+        -----------
+        df : pandas.DataFrame
+            The dataframe containing the data to plot
+        x_col : str
+            Name of the column to use for x-axis (typically dates)
+        y1_col : str 
+            Name of the column to plot on first y-axis
+        y2_col : str
+            Name of the column to plot on second y-axis
+        title : str
+            Title for the plot
+
+        Returns:
+        --------
+        None
+            Displays the plot with two y-axes showing both time series and their trend lines
+        """
+        # Define colors
+        COLOR_LINE_1 = "red"
+        COLOR_LINE_2 = "green"
+
+        # Ensure data is sorted by date
+        df = df.sort_values(by=x_col)
+        
+        # Drop rows where either y-column is NaN
+        df_clean = df.dropna(subset=[y1_col, y2_col])
+        
+        if len(df_clean) == 0:
+            print("No valid data points found after cleaning")
+            return
+            
+        # Create figure and axes
+        fig, ax1 = plt.subplots(figsize=(16, 6))
+
+        # Plot first line
+        sns.lineplot(data=df_clean, x=x_col, y=y1_col, ax=ax1, color=COLOR_LINE_1, label=y1_col)
+        ax1.set_ylabel(y1_col, color=COLOR_LINE_1)
+        ax1.tick_params(axis="y", labelcolor=COLOR_LINE_1)
+
+        # Plot second line
+        ax2 = ax1.twinx()
+        sns.lineplot(data=df_clean, x=x_col, y=y2_col, ax=ax2, color=COLOR_LINE_2, label=y2_col)
+        ax2.set_ylabel(y2_col, color=COLOR_LINE_2)
+        ax2.tick_params(axis="y", labelcolor=COLOR_LINE_2)
+
+        # Add title and labels
+        ax1.set_title(title.title())
+        ax1.set_xlabel(x_col)
+        
+        # Calculate trend lines using clean data
+        x_nums = np.arange(len(df_clean))
+        
+        # Trend line for first axis
+        z1 = np.polyfit(x_nums, df_clean[y1_col], 3)
+        p1 = np.poly1d(z1)
+        ax1.plot(df_clean[x_col], p1(x_nums), COLOR_LINE_1, linestyle='--', alpha=0.8, label=f"Tendencia {y1_col}")
+
+        # Trend line for second axis
+        z2 = np.polyfit(x_nums, df_clean[y2_col], 3)
+        p2 = np.poly1d(z2)
+        ax2.plot(df_clean[x_col], p2(x_nums), COLOR_LINE_2, linestyle='--', alpha=0.8, label=f"Tendencia {y2_col}")
+
+        # Adjust legends
+        lines1, labels1 = ax1.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        ax2.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
+        ax1.get_legend().remove()
+        # Hide legend
+        ax2.get_legend().remove()
+
+        # Hide grid
+        ax1.grid(False)
+        ax2.grid(False)
+
+        
+        # Guardar el gráfico en un buffer de memoria en formato PNG
+        buffer = BytesIO()
+        plt.savefig(buffer, format="png")
+        buffer.seek(0)
+
+        # Convertir la imagen en base64
+        img_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+
+       # Cerrar el buffer de memoria
+        buffer.close()
+        # Retornar el código base64 completo
+        return img_base64
+
 
 if __name__ == "__main__":
     # Example usage
