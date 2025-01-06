@@ -117,12 +117,13 @@ class RealtyReport(Realty):
             setattr(self, key, value)
 
         # Clean and standardize basic fields
-        self._town = RealtyReport.get_town(self._town)
+        self._town = RealtyReport.estandarizar(self._town)
         self._description = RealtyReport.clean_description(self._description)
         self._type_v = RealtyReport.estandarizar(self._type_v)
         self._address = RealtyReport.estandarizar(self._address)
         self.n_hab = RealtyReport.find_min_int(self._info, RealtyReport.RX_HAB)
         self.sup_m2 = RealtyReport.find_min_int(self._info, RealtyReport.RX_M2)
+
         self.disponibilidad = RealtyReport.get_occupation(self._description)
         self._tags = RealtyReport.extract_tags(self._description)
 
@@ -137,9 +138,6 @@ class RealtyReport(Realty):
         self.precio_alquiler_estimado = RealtyReport.get_price_alquiler_estimado(self.precio_alquiler_1y, self.sup_m2)
         self.precio_venta_estimado = RealtyReport.get_price_venta_estimado(self.precio_venta_1y, self.sup_m2)
         self.global_score_stars = RealtyReport.get_global_score_stars(self.precio_venta_stars, self.rentabilidad_10y_stars, self.grow_acu_venta_10y_stars, self.grow_acu_alquiler_10y_stars, self.disponibilidad)
-
-    def match_place(self, places):
-        self.barrio, self.barrio_ratio = RealtyReport.map_place(self.town, places)
 
     def to_dict(self):
         return {
@@ -280,20 +278,37 @@ class RealtyReport(Realty):
         tags = RealtyReport.RX_SINGLE_TAG.findall(description) + RealtyReport.RX_DOUBLE_TAG.findall(description)
         tags = list(dict.fromkeys(tags))
         return tags
+
+    def match_place(self, places):
+
+        matches = []
+        for a in self.address.split(',') + self.town.split(','):
+            matches.append(RealtyReport.map_place(a.strip(), places))
+        
+        # sort matches by 3 element
+        matches = sorted(matches, key=lambda x: x[2])
+        # get first non none match
+        match = next((x for x in matches if x is not None), None)
+        if match is not None:
+            self.barrio , self.barrio_ratio = match[0], match[1]
     
     @staticmethod
     def map_place(x, places):
         if x is None: return None
         match = None
         best = 0
-        for y in places:
+        place_idx = None
+        for i, y in enumerate(places):
             ratio = SequenceMatcher(None, x, y).ratio()
-            if ratio == 1:
-                return (y, ratio)
             if ratio > best:
+                place_idx = i
                 best = ratio
                 match = y
-        return (match if best > 0.5 else None, round(best,2))
+            if ratio == 1:
+                break
+        if(best > .5):
+            return (match, best, place_idx)
+        return None
     
     @staticmethod
     def get_price_m2(price, sup_m2) -> Optional[int]:

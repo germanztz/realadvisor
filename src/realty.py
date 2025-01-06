@@ -28,6 +28,8 @@ class Realty:
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
+        if self._town != self._address:
+            self._address = self._address + ', ' + self._town
 
     @property
     def link(self):
