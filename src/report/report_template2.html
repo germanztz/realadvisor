@@ -89,6 +89,10 @@
         .highlight {
             color: #e74c3c;
         }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -96,9 +100,8 @@
     <div class="container">
         <h1>Informe de Inversión Inmobiliaria</h1>
         
-        <h2>{{ type_v }} en <a href="{{ link }}" target="_blank" style="color: #2980B9;">{{ address|title }}</a></h2>
-        <p class="stars">{{ stars_to_emoji_string }}</p>
-
+        <h2>{{ type_v|title }} en <a href="{{ link }}" target="_blank" style="color: #2980B9;">{{ address|title }}</a> <span class="stars">{{ stars_to_emoji_string }}</span></h2>
+        
         <h3>Análisis de Inversión</h3>
         <div class="info-section">
             <p><strong>Estrellas Globales:</strong> {{ stars_to_emoji_string }} ({{ global_score_stars }})</p>
@@ -126,7 +129,9 @@
             <p><strong>Creado:</strong> {{ created }}</p>
             <p><strong>Disponibilidad:</strong> <span class="availability">{{ disponibilidad }}</span> {{ availability_to_emoji_string }}</p>
         </div>
-        <img src="data:image/png;base64,{{ grafico1_base64 }}">
+        <img src="data:image/png;base64,{{ grafico1_base64 }}"></br>
+        <img src="data:image/png;base64,{{ grafico2_base64 }}"></br>
+        <img src="data:image/png;base64,{{ grafico3_base64 }}"></br>
     </div>
 
 </body>

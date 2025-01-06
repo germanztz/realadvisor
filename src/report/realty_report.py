@@ -117,7 +117,7 @@ class RealtyReport(Realty):
             setattr(self, key, value)
 
         # Clean and standardize basic fields
-        self._town = RealtyReport.get_hood(self._town)
+        self._town = RealtyReport.get_town(self._town)
         self._description = RealtyReport.clean_description(self._description)
         self._type_v = RealtyReport.estandarizar(self._type_v)
         self._address = RealtyReport.estandarizar(self._address)
@@ -245,7 +245,7 @@ class RealtyReport(Realty):
         return x.split(' - AEI ')[0].replace('-', ' ').replace('  ', ' ').lower()
 
     @staticmethod
-    def get_hood(x):
+    def get_town(x):
         x1 = ''.join(RealtyReport.RX_BARRIOS.findall(x)).strip() 
         x1 = x1 if len(x1)>1 else x
         return RealtyReport.estandarizar(x1)

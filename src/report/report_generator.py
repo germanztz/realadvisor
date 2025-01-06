@@ -18,6 +18,9 @@ import base64
 from io import BytesIO
 
 class ReportGenerator:
+    
+    CACHE_DIR = 'plot_cache'
+
     def __init__(self, datasets_path: str = 'datasets', template_path: str = 'report_template.html', output_dir: str = 'reports'):
         # Get the directory where this script is located
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -30,8 +33,8 @@ class ReportGenerator:
 
         self.output_dir = output_dir 
         # Create output directory if it doesn't exist
-        os.makedirs(output_dir, exist_ok=True)
-        os.chmod(output_dir, 0o777)
+        # os.makedirs(output_dir, exist_ok=True)
+        # os.chmod(output_dir, 0o777)
 
     def generate_report_html(self, property_report: RealtyReport):
         """
@@ -77,9 +80,6 @@ class ReportGenerator:
                 pdfkit.from_file(html_path, pdf_path)
             except OSError as e:
                 print("Error: wkhtmltopdf no está instalado. Por favor, instálalo:")
-                print("Ubuntu/Debian: sudo apt-get install wkhtmltopdf")
-                print("macOS: brew install wkhtmltopdf")
-                print("Windows: descarga desde https://wkhtmltopdf.org/downloads.html")
                 pdf_path = None
             except Exception as e:
                 print(f"Error generando PDF: {e}")
@@ -94,12 +94,23 @@ class ReportGenerator:
         # get extension of the template file
         template_extension = Path(template_path).suffix
         
+        bcn_precios = pd.read_csv(self.precios_path)
+        bcn_precios['mes'] = pd.to_datetime(bcn_precios['mes'])
+        df = bcn_precios[bcn_precios['id'] == realty_report.id]
+        grafico1_base64 = self.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        df = bcn_precios[bcn_precios['id'] == realty_report.sup_id]
+        grafico2_base64 = self.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        df = bcn_precios[bcn_precios['id'] == 80000]
+        grafico3_base64 = self.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+
         html_content = template.render(
             **realty_report.to_dict(),
             stars_to_emoji_string=self.stars_to_emoji(realty_report.global_score_stars),
             tags_to_emoji_string=self.tags_to_emoji(realty_report.tags),
             availability_to_emoji_string=self.availability_to_emoji(realty_report.disponibilidad),
-            grafico1_base64=self.generate_grafico1(realty_report),
+            grafico1_base64 = ReportGenerator.load_plot_cache(grafico1_base64),
+            grafico2_base64 = ReportGenerator.load_plot_cache(grafico2_base64),
+            grafico3_base64 = ReportGenerator.load_plot_cache(grafico3_base64),
             )
 
         base_filename = f"property_report_{realty_report.barrio}"
@@ -116,15 +127,7 @@ class ReportGenerator:
         # try:
         pdfkit.from_file(html_path, pdf_path)
         os.chmod(pdf_path, 0o777)
-        # except OSError as e:
-        #     print("Error: wkhtmltopdf no está instalado. Por favor, instálalo:")
-        #     print("Ubuntu/Debian: sudo apt-get install wkhtmltopdf")
-        #     print("macOS: brew install wkhtmltopdf")
-        #     print("Windows: descarga desde https://wkhtmltopdf.org/downloads.html")
-        #     pdf_path = None
-        # except Exception as e:
-        #     print(f"Error generando PDF: {e}")
-        #     pdf_path = None
+
 
         return html_content
 
@@ -159,12 +162,6 @@ class ReportGenerator:
         tags = " ".join(tags)
         return tags
 
-    def generate_grafico1(self, realty_report: RealtyReport):
-        bcn_precios = pd.read_csv(self.precios_path)
-        bcn_precios['mes'] = pd.to_datetime(bcn_precios['mes'])
-        img64 = self.plot_dual_axis(bcn_precios[(bcn_precios['nombre'] == realty_report.nombre) & (bcn_precios['tipo'] == realty_report.tipo)], 'mes', 'precio_alquiler', 'precio_venta', realty_report.nombre)
-        return img64
-
     @staticmethod
     def plot_dual_axis(df, x_col, y1_col, y2_col, title):
         """
@@ -188,9 +185,15 @@ class ReportGenerator:
         None
             Displays the plot with two y-axes showing both time series and their trend lines
         """
+        plot_path = os.path.join(ReportGenerator.CACHE_DIR, f"{title}.png")
+        if os.path.exists(plot_path):
+            return plot_path
+
         # Define colors
         COLOR_LINE_1 = "red"
         COLOR_LINE_2 = "green"
+        label1=y1_col.replace('_', ' ').title()
+        label2=y2_col.replace('_', ' ').title()
 
         # Ensure data is sorted by date
         df = df.sort_values(by=x_col)
@@ -206,14 +209,14 @@ class ReportGenerator:
         fig, ax1 = plt.subplots(figsize=(16, 6))
 
         # Plot first line
-        sns.lineplot(data=df_clean, x=x_col, y=y1_col, ax=ax1, color=COLOR_LINE_1, label=y1_col.replace('_', ' ').title())
-        ax1.set_ylabel(y1_col.replace('_', ' ').title(), color=COLOR_LINE_1)
+        sns.lineplot(data=df_clean, x=x_col, y=y1_col, ax=ax1, color=COLOR_LINE_1, label=label1)
+        ax1.set_ylabel(label1, color=COLOR_LINE_1)
         ax1.tick_params(axis="y", labelcolor=COLOR_LINE_1)
 
         # Plot second line
         ax2 = ax1.twinx()
-        sns.lineplot(data=df_clean, x=x_col, y=y2_col, ax=ax2, color=COLOR_LINE_2, label=y2_col.replace('_', ' ').title())
-        ax2.set_ylabel(y2_col.replace('_', ' ').title(), color=COLOR_LINE_2)
+        sns.lineplot(data=df_clean, x=x_col, y=y2_col, ax=ax2, color=COLOR_LINE_2, label=label2)
+        ax2.set_ylabel(label2, color=COLOR_LINE_2)
         ax2.tick_params(axis="y", labelcolor=COLOR_LINE_2)
 
         # Add title and labels
@@ -226,12 +229,12 @@ class ReportGenerator:
         # Trend line for first axis
         z1 = np.polyfit(x_nums, df_clean[y1_col], 3)
         p1 = np.poly1d(z1)
-        ax1.plot(df_clean[x_col], p1(x_nums), COLOR_LINE_1, linestyle='--', alpha=0.8, label=f"Tendencia {y1_col.replace('_', ' ').title()}")
+        ax1.plot(df_clean[x_col], p1(x_nums), COLOR_LINE_1, linestyle='--', alpha=0.8, label=f"Tendencia {label1}")
 
         # Trend line for second axis
         z2 = np.polyfit(x_nums, df_clean[y2_col], 3)
         p2 = np.poly1d(z2)
-        ax2.plot(df_clean[x_col], p2(x_nums), COLOR_LINE_2, linestyle='--', alpha=0.8, label=f"Tendencia {y2_col.replace('_', ' ').title()}")
+        ax2.plot(df_clean[x_col], p2(x_nums), COLOR_LINE_2, linestyle='--', alpha=0.8, label=f"Tendencia {label2}")
 
         # Adjust legends
         lines1, labels1 = ax1.get_legend_handles_labels()
@@ -244,25 +247,22 @@ class ReportGenerator:
         # Hide grid
         ax1.grid(False)
         ax2.grid(False)
-
         
-        # Guardar el gráfico en un buffer de memoria en formato PNG
-        buffer = BytesIO()
-        plt.savefig(buffer, format="png")
-        buffer.seek(0)
+        plt.savefig(plot_path)
+        return plot_path
 
-        # Convertir la imagen en base64
-        img_base64 = base64.b64encode(buffer.read()).decode('utf-8')
-
-       # Cerrar el buffer de memoria
-        buffer.close()
-        # Retornar el código base64 completo
-        return img_base64
-
+    @staticmethod
+    def load_plot_cache(plot_path):
+        """ Retuns a base64 encoded image from cache if exists """
+        if os.path.exists(plot_path):
+            with open(plot_path, 'rb') as f:
+                return base64.b64encode(f.read()).decode('utf-8')
+            
+        return None
 
 if __name__ == "__main__":
     # Example usage
     # Create report generator and generate report
-    generator = ReportGenerator()
-    html_path, pdf_path = generator.generate_report_file(RealtyReport.get_example())
-    print(f"Generated reports:\nHTML: {html_path}\nPDF: {pdf_path}")
+    report_generator = ReportGenerator()
+    html =   report_generator.generate_report(Realty.get_sample())
+    print(f"Generated reports:")

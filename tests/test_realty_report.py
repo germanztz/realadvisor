@@ -33,8 +33,8 @@ class TestRealtyReport(unittest.TestCase):
         occupation = RealtyReport.get_occupation(self.sample_data['description'])
         self.assertEqual(occupation, 'ocupada')
 
-    def test_get_hood(self):
-        hood = RealtyReport.get_hood(self.sample_data['town'])
+    def test_get_town(self):
+        hood = RealtyReport.get_town(self.sample_data['town'])
         self.assertEqual(hood, 'sant andreu')
 
     def test_clean_description(self):
@@ -88,8 +88,8 @@ class TestRealtyReport(unittest.TestCase):
         self.assertEqual(RealtyReport.estandarizar("Barcelona - Sant Andreu"), "barcelona  sant andreu")
         self.assertEqual(RealtyReport.estandarizar("La Teixonera"), "la teixonera")
 
-    def test_get_hood(self):
-        self.assertEqual(RealtyReport.get_hood("calle test 123,Sant Andreu, Barcelona"), "sant andreu")
+    def test_get_town(self):
+        self.assertEqual(RealtyReport.get_town("calle test 123,Sant Andreu, Barcelona"), "sant andreu")
 
     def test_clean_description(self):
         self.assertEqual(RealtyReport.clean_description("Piso en venta en<br> Barcelona reformado y con terraza ocupada"), "piso en venta en barcelona reformado y con terraza ocupada")

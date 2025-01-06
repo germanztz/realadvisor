@@ -45,8 +45,8 @@ class TestRealty(unittest.TestCase):
     #     occupation = Realty.get_occupation(self.sample_data['description'])
     #     self.assertEqual(occupation, 'ocupada')
 
-    # def test_get_hood(self):
-    #     hood = Realty.get_hood(self.sample_data['town'])
+    # def test_get_town(self):
+    #     hood = Realty.get_town(self.sample_data['town'])
     #     self.assertEqual(hood, 'sant andreu')
 
     # def test_clean_description(self):
