@@ -34,7 +34,7 @@ class ReportGenerator:
         self.output_dir = output_dir 
         # Create output directory if it doesn't exist
         # os.makedirs(output_dir, exist_ok=True)
-        # os.chmod(output_dir, 0o777)
+        os.chmod(output_dir, 0o777)
 
     def generate_report_html(self, property_report: RealtyReport):
         """
@@ -93,15 +93,26 @@ class ReportGenerator:
         template = self.env.get_template(template_path)
         # get extension of the template file
         template_extension = Path(template_path).suffix
+
+        base_filename = f"property_report_{realty_report.barrio}"
+        html_path = os.path.join(self.output_dir, f"{base_filename}{template_extension}")
+        pdf_path = os.path.join(self.output_dir, f"{base_filename}.pdf")
         
         bcn_precios = pd.read_csv(self.precios_path)
         bcn_precios['mes'] = pd.to_datetime(bcn_precios['mes'])
         df = bcn_precios[bcn_precios['id'] == realty_report.id]
-        grafico1_base64 = self.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        grafico1_base64 = ReportGenerator.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
         df = bcn_precios[bcn_precios['id'] == realty_report.sup_id]
-        grafico2_base64 = self.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        grafico2_base64 = ReportGenerator.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
         df = bcn_precios[bcn_precios['id'] == 80000]
-        grafico3_base64 = self.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        grafico3_base64 = ReportGenerator.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        grafico4_base64 = ReportGenerator.plot_cuadro_rentabilidad(
+            inversion_precio=realty_report.price, 
+            gastos_gestion=5000, 
+            gastos_reforma=5000, 
+            anos_vista=5, 
+            retorno_bruto_mensual=realty_report.precio_alquiler_estimado, 
+            title="Rentabilidad estimada a 5 años")
 
         html_content = template.render(
             **realty_report.to_dict(),
@@ -111,21 +122,20 @@ class ReportGenerator:
             grafico1_base64 = ReportGenerator.load_plot_cache(grafico1_base64),
             grafico2_base64 = ReportGenerator.load_plot_cache(grafico2_base64),
             grafico3_base64 = ReportGenerator.load_plot_cache(grafico3_base64),
+            grafico4_base64 = ReportGenerator.load_plot_cache(grafico4_base64),
             )
 
-        base_filename = f"property_report_{realty_report.barrio}"
-        html_path = os.path.join(self.output_dir, f"{base_filename}{template_extension}")
-        pdf_path = os.path.join(self.output_dir, f"{base_filename}.pdf")
-        
         # Save HTML
         with open(html_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
-            
+        # set ownmer nobody
+        # os.chown(html_path, 65534, 65534)            
         # os.chmod(html_path, 0o777)
 
         # Generate PDF if requested
         # try:
         pdfkit.from_file(html_path, pdf_path)
+        # os.chown(pdf_path, 65534, 65534)            
         # os.chmod(pdf_path, 0o777)
 
 
@@ -146,19 +156,19 @@ class ReportGenerator:
     def stars_to_emoji(self, stars):
         if isinstance(stars, (int, float)):
             full_stars = int(stars)
-            return "⭐" * full_stars
+            return '<span class="star-icon"></span>' * full_stars
         return ""
 
     def availability_to_emoji(self, availability):
         return {
-            'disponible': '✅',
-            'alquilada': '⚠️',
-            'ocupada': '🚨'
+            'disponible': '<span class="ok-icon"></span>',
+            'alquilada': '<span class="warn-icon"></span>',
+            'ocupada': '<span class="alert-icon"></span>'
         }.get(str(availability).lower(), '')
 
     def tags_to_emoji(self, tags):
         tags = tags if tags else []
-        tags = [f"🏷️ {tag}" for tag in tags]
+        tags = [f'<span class="tag-icon"></span>{tag}' for tag in tags]
         tags = " ".join(tags)
         return tags
 
@@ -248,9 +258,69 @@ class ReportGenerator:
         ax1.grid(False)
         ax2.grid(False)
         
+        fig.tight_layout()  # Para ajustar bien el layout
+
         plt.savefig(plot_path)
         return plot_path
 
+    @staticmethod
+    def plot_cuadro_rentabilidad(inversion_precio=90000, gastos_gestion=5000, gastos_reforma=5000, anos_vista=5, retorno_bruto_mensual=700, title="Cuadro de Rentabilidad"):
+        plot_path = os.path.join(ReportGenerator.CACHE_DIR, f"{title}.png")
+        # if os.path.exists(plot_path):
+        #     return plot_path
+
+        # Calculamos la inversión total inicial
+        inversion_total = inversion_precio + gastos_gestion + gastos_reforma
+        
+        # Calculamos el retorno bruto anual
+        retorno_bruto_anual = retorno_bruto_mensual * 12
+        
+        # Calculamos el retorno neto anual (suponiendo que no hay otros gastos operativos)
+        retorno_neto_anual = retorno_bruto_anual
+
+        # Generamos las etiquetas de los trimestres
+        trimestres = []
+        for ano in range(1, anos_vista + 1):
+            for trimestre in range(1, 5):
+                trimestres.append(f'{2025 + ano - 1}Q{trimestre}')
+        
+        # Creamos el cuadro de rentabilidad por trimestre
+        cuadro = []
+        for i, trimestre in enumerate(trimestres):
+            retorno_acumulado = retorno_neto_anual * ((i + 1) / 4)
+            rentabilidad = (retorno_acumulado / inversion_total) * 100
+            cuadro.append({
+                'Trimestre': trimestre,
+                'Retorno Acumulado': retorno_acumulado,
+                'Rentabilidad (%)': rentabilidad
+            })
+        
+        # Convertimos el cuadro a un DataFrame de pandas
+        df = pd.DataFrame(cuadro)
+        
+        # Graficamos los datos usando seaborn
+        sns.set(style="whitegrid")
+        fig, ax1 = plt.subplots(figsize=(16, 6))
+        
+        color = 'tab:blue'
+        ax1.set_xlabel('Trimestre')
+        ax1.set_ylabel('Retorno Acumulado', color=color)
+        sns.lineplot(x='Trimestre', y='Retorno Acumulado', data=df, ax=ax1, color=color, marker="o")
+        ax1.tick_params(axis='y', labelcolor=color)
+        ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, horizontalalignment='right')
+
+        ax2 = ax1.twinx()  # Instanciamos un segundo eje que comparte el mismo eje x
+        color = 'tab:green'
+        ax2.set_ylabel('Rentabilidad (%)', color=color)
+        sns.lineplot(x='Trimestre', y='Rentabilidad (%)', data=df, ax=ax2, color=color, marker="o")
+        ax2.tick_params(axis='y', labelcolor=color)
+
+        fig.tight_layout()  # Para ajustar bien el layout
+        plt.title(title)
+
+        plt.savefig(plot_path)
+        return plot_path
+    
     @staticmethod
     def load_plot_cache(plot_path):
         """ Retuns a base64 encoded image from cache if exists """

@@ -6,6 +6,7 @@
     <title>Informe de Inversión Inmobiliaria</title>
     <style>
         body {
+            /* font-family: 'Noto Color Emoji', sans-serif; */
             font-family: Arial, sans-serif;
             /* background-color: #f4f4f4; */
             color: #333;
@@ -45,9 +46,6 @@
         }
         .info-section strong {
             color: #2980B9;
-        }
-        .stars {
-            font-size: 1.2em;
         }
         .tags {
             display: flex;
@@ -93,6 +91,48 @@
             max-width: 100%;
             height: auto;
         }
+        .star-icon {
+            display: inline-block;
+            width: 16px;  /* Ajusta el tamaño de la estrella según sea necesario */
+            height: 16px;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAACu0lEQVR4nO2ZS2sTURTHr28FRUSoC4ViMHPOxLYqRUVcuPEruNKFKPgV+gHEKoiCC4WCILhoaXzW+t50Ydvk3MRdVXBRF924sCAIvmrzl5m0SYa8JnHuZEbyh7OcM7//OfdO7rlRqquuujImCB9zQsVV0PwCws9VHIUsD0K4AM1ALnlExU3Q9NSFd4MmVZwEbR8qVb8U1mEVF0F4wgvPgPBjFQdBUgerq+8aKDj7QkVd0PSwCr5kgh6oKAti74fwcn0DXEDGGlBRFTSn68KXY1xFUcimUg2rX+7CMvLUr6ImCI35qP7qXhhVURIySdtX9Su7oLmvM7AziR7krOMQOgvhSyvr/pNv+HI4z6TdHE4uJ+dMoicYyDf9O4pnGToF4SEIj0B4GsJf2wBtNX5A07tiYegKNF+Atk9CJxPNwYWGoWkxBMg2gxYdxvoGPu7bBOEnnQflevESs3u2NO7CXGojND2KACw8IfQMU72b/e2B/OAGCN+P0NKZdFaHL/iSibRaB6G7nYfncaegLcF7TGi+08FlM4qpE+vbgi+ZgFoDoZsdWDa3AbX2n+A9JjTfCK/yPBIYvMeE0PUQDNxy3hUovMeI5osGK3/VGHjbJ0//G3YsFPiiAb5noAPpMA18MGDgfTjwznlJ01LwBmip5V/btq9NTG3ibPKAeQPaOmPuK0SnQzBAlw0aGDZvwOS8IDxh3oDmeZ9AC8Vx0I0Fn8/Mm4WfS22tee/p/Zp8cefoismpOCQ5Ruhzkw4UME3bzBnI20cbrN9v7hCeT2xvUoChhpcDOYN/hiBrn68B/ss9PWb6dvnOI7xz5cbhe40OnjNnoPI0KvTbndiy1t62880md7vHdOGfFQauBUtd+UKh1yt7II2MnQws71u71+2i5j/Q9CqovNUvcpeKuetxZKwB5x2m8nfV1f+ov0WA2bF0AkOGAAAAAElFTkSuQmCC');
+            background-size: contain;
+            background-repeat: no-repeat;
+
+        }
+        .ok-icon {
+            display: inline-block;
+            width: 16px;  /* Ajusta el tamaño de la estrella según sea necesario */
+            height: 16px;
+            background-image: url('data:image/png;base64,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');
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        .warn-icon {
+            display: inline-block;
+            width: 16px;  /* Ajusta el tamaño de la estrella según sea necesario */
+            height: 16px;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFPElEQVR4nO1b3W9UVRC/iTXim8gfwAtIu3dmIeHFD0wl6rOK4pPIg1/hb7Bll7IoAa18lNqye86FxIaEPwS131QQKKXttrvnLDxA9UWItMfMtthte+9ud3vO7CJOMmnT7s2c32/nzJmZM9fz/he3krvYvCUv4AMtMKkEXNIChrTAGS3wvhK4QEq/L/4NhhY/g0l6hp71nkbJB9CsBBzTAkeUxHkt0dSii8/CsJaQymVwh9fIYnp3P68kHlQSfq0VcGVC4Bcl4p+aRGuT11DARfyQEjDlCngIEZNKwld1JyIv8U0lYIwL+BoiBF7Ni/geduAzl199UQvsKQawOoEvIWFBS+ieCrZuYgGfy+AOJXG03sBD9Lq+sNN3Cr4Q4NtK4p8NADbKG/7QGX+vE/D5AN7XAv+qN8iKKvCRFvCxVfA6wP1KwGObC82l0Uye9c3Ead9kz4FlT4DHKhP/0A74jL9XS3xoc4HjnWAG2lpM/9fLOpqKGZWx6wkFCe9uPKOTdvf85FlYAbxUb3X6dj1Bwtw9uWt7TeCngq2bKJW1uSDS0Y5YJAFXj8as2lraDmN0bFdNgBbYY30xEs1AWzQB9D/6jH270FUV+LyI73GR5NAejwL/RPNpcOAFuHBX+q+vC7xJtDY5S3REZQJme+wT8GQrUN1SkQAl4oecgF/S1dF/DQG9bghY8oQv11HZgdOqbqC9PAG5tEMCJN4pW0EqiQddgicdOlwhBtjMBcJICPwDkQRogf2uCRg+En0KkLq2ryReCQWfuxh/xbXxSnkAeQfHGkLba4p6eAzGx45FEzByxH4iFKEdYft/lMP4tW/9SALGUmwEDKxy/+YtG+neVqO/n4gm4Npxu7VAuWox24ebS759fx8T8+bmd9EE3DjBQwAp9Te8kuif5DI83hlNwK3v+QhQAtpLA+AlLsMTp6LL4dun+AjQEn8q8QAY4jJcrh8w2eUuCywbCLWEWS7D0+eiCZjuZiRAYLYkCMIcl+FsT3RFOHuelYD7pQT8zWU41xtNgNWeYAUlzF49CKBiJ7wbxJMGRxEwx2k8rCcwnGDLAtduAc0YBEmHEiEN0RQ7ActBkPMYJKWcfzUB148zE1B6DCrGRIj05sm12eDtH1iToNWJELKlwqTZH1fmAhQT6KqMcw0rUuE8DTHxsm9unPSLwAfbW8wEbwpc1ILE9/4lYCYde5mrHF7xLdBPwWsztBwmcXEN1rAqsN9bLVpC6hkiIFm3pqhuACWsXpgohzN+oQtJg8lxFkDl2uIkNITIsYipLjAjyeVkaDgZK/YJWAgQ8IlXftoTJl2DD70ib2sxd864JaHi1RgJTWC6XAT1/iMvRhwXRAWJn3v1vB5X67ke73V4Pb7e0dp84L/hZAqUCKhwPZ4778T15wsZeM2rRrSEbva7wUSLk8xQCTzj1TQkJWlW30FTNMILXJwENFBd05AUCSUMxfFTy4ua6UHz2zcxM3h4sRii/gBViNY9TsCDu+nYNm8jogP/radiRHYNeHxUEPiOZ0OUwI9sj8q61OKorPT3ec/ksLTEh9aHpUu3A3cHuTq3hwdKQKvnUu7JXdsbs3cAwxsOeNUckTR+2hCvzEicp3N+/PS2FzxuURdwN8dkWRnwo+segXUlJtHalA/wC6q02IALnNDC/8xc3v+c1yhiqIgK/ANKwM8Ov/ErVM/X/X3BSrLUXuug25eN5A9Lzw5QD6/mFx/qLdk+3Ew9eLqIUAL6tMBBLXG6+PI0BTBqx9PL0/S3RcL66LP0zFSw86V6r9/7r8s/1pcogbNdkk4AAAAASUVORK5CYII=');
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        .alert-icon {
+            display: inline-block;
+            width: 16px;  /* Ajusta el tamaño de la estrella según sea necesario */
+            height: 16px;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAEGElEQVR4nO1bW28TRxQeqUGlb1D+QrlIPPoJSrVFTvd8xw4KobgPvVGJkArxG5CiQOCFi4QQ4geA8k+4Floi9aVqSeMYz6ybBEqKSgVl0dmgEOLb2nuZtc0nfZJlz1rnO3Nm5szMWaXeI1lU8vltBhjTxJOGeMaA7xlw2RCWNfiVUD4H38lvxDNBW2BMnlW9iEeuu0sD05rwsyb8b8B+N5RnNfF9TXy6QrRTZRl+LrepChwx4NvdCm5Lwi2P+XvfcYZUloR7wHEDnktMeD0fGqIfrTviEdFnmjCbovANQ4QfeMC+1IWXS6WPNPhqMIFZEr/mBJlIia/MOc7mVMRXiHZq8C+2hdfPD/yrJtqdqHgD5DXhqXWxzYfE39ot7E9GPPNBA/7Xtsj2kYD/NBW+ilW8Bkqa8NK6uNCRgJeey1/GI94t7DfEz22L6iYSjMtfRM/oKLtjvm0kgJ/UhovbuxI/5zibJZW1LSKyEwizsmx37AANvmrb+PiIyx2J94B9WUhyYosC8CvPLewNJd53nKFMJjpRnUCYlX1LmN4/btvY5IiJ1r2fy21KeVeXdhT80XIHWV3dz/v9TI8K3zV1gCG+Y9vAxKMAfKOh+BrzDtvGpcWGx2samLZtWHpRgKkGDuC+W/qaknD3HfGVfH5blNPbXqPsFueLxa1rDvCIDtk2KnUyH3wb/sFFRKvGBd/7+hu/duSHnqDYKja31ER8cv3yN9Os4dK5c/5KpeL/8+xZT3FlYcFfnDrVYhjwtbcOWL2uqmu0OH3GupCoXDp/of1EaIgX6hqMHPBXjLEuIHIkGOOb4kgDJ2B+/RL4ZGOD2vgx68bHxdrR8UYRsLzeAS82NvjrxAnrhsdF0VI3B4BfvHfAwAyBiYnWQ8D0+yQ4cqD1JGiaLINLFy9aFxCVi2fOhloGZ5olDJJMPC2XrQvplGLz4qmQiZAe+FQYGLO2KbFFKoyuRUDZdT8e6O2woB+uwcL3Pt9RG6GJTw9OBPDkQB+K1ph3qEYwSdb4Zf1YXCBFiLYNTJ74VrW5Gns4sFdjAqnAtG1oYiQeVwN9Pe6ELK31mD/tqwIJSfKI9qhOoImv2DY8NhJfUt0VSfH93u99ftBVkZRAEgYpP+1d8Xjsue4nKgo00ec9USLbqFCSaFjFgSpwuOdKZYkOqcEslubnsRdLrx8OjU6QszTmq4CjkkRtuLg9i2cHsmJFnvA6WSKl/DQLydJqksOXfgM+VGmj6hZzNivLJGUPXQKbFHzHGTLMx2SnlWK4/66Bo36p9IHKCnzHGZIiRE18M8EevyH7eevvC4bKIIEpuX2Jkj8Ezwb/wZNdv/hgG/PF4lY5g5eaHA1cN8BPhvBn8PJ08G6wTGJYfvPd3aAN8Ul55vHo6Bbb9qt+x2uW22565fPk3gAAAABJRU5ErkJggg==');
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        .tag-icon {
+            display: inline-block;
+            width: 16px;  /* Ajusta el tamaño de la estrella según sea necesario */
+            height: 16px;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAACaUlEQVR4nO3Xy46aUBwGcHeTdB6gaTqTesELIsMkfZImkz5Ota/SRPEyjgqI1QWZdNVFM0m3k25B8IBppqt2cxoOMEVT7QCHc2jCl3xb8/uOfxcWCnny5MlzLMLKeXu5dO4uls4vYenAx3504EW4C6/8woa8+tgHfg7GrLypFmjkcrVtC6stjAGHbltzvwpwBNl+SRQvLJ1OYvjcxduQUwBsymBAB58QzvltSpvvZPEx4Jxiz3nVPnPLyUBFeNlrUwaQDD7Bi/OqfRZ8FjdxzgM4qpTyAGHhdJKeCr83IIB73aQ3gA/jY944552Kil5+4pyzEli4aLfszGu6+APw1tPgMHwq+/DUBiA8Drh0HM5ON7AxxTwgwJOAN9xOLIgVTxLe8IsJDzqk4XW3NxgG8PM/eJLwul8seBrw2thrIjxNeG1sosbCcy6eMrx2bULm2vyZDE8JXg06Mr9EwrcUu+3/maANh26ZoXH1ZHxTta+yAq8ivNmOdjoK+BQZPv07vJ4EPjJhZbDuRMKjb0DZbGnDmeE6Hh4NkMFXmnAG1Yh2NuGwM/CeHnwd/+WDMOr9SXNm3ZKGMzjwQV5L+jN2ZmkE4bDcT3A2h0Y0JpaWNrySBn5nxI2lYYX76Era+PCImjsCM7zSJ4APj6iOLQ0XvNI3yOGDvEAjTA0DnDx+Z8TI1BLAYblHCb8zYmhqzGgdDS5mAB8ewQwN7ciPcxcuGrCYFXx4RHlgaP+Cl7KI3xkhGtoheKmXYXyQ5x/Wp2VRv92HI3zXeFf4H8Ko9yclUe8Uu/q3Ylf/Uerqn1/19De0XXny5ClkO78B61s5Mc2enx4AAAAASUVORK5CYII=');
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+        
     </style>
 </head>
 <body>
@@ -100,7 +140,7 @@
     <div class="container">
         <h1>Informe de Inversión Inmobiliaria</h1>
         
-        <h2>{{ type_v|title }} en <a href="{{ link }}" target="_blank" style="color: #2980B9;">{{ address|title }}</a> <span class="stars">{{ stars_to_emoji_string }}</span></h2>
+        <h2>{{ type_v|title }} en <a href="{{ link }}" target="_blank" style="color: #2980B9;">{{ address|title }}</a> {{ stars_to_emoji_string }}</h2>
         
         <h3>Análisis de Inversión</h3>
         <div class="info-section">
@@ -109,6 +149,7 @@
             <p><strong>Estrellas de Rentabilidad:</strong> {{ stars_to_emoji_string }} ({{ rentabilidad_10y_stars }})</p>
             <p><strong>Rentabilidad:</strong> {{ (rentabilidad_10y * 100) }} %</p>
         </div>
+
         <h3>Información Básica</h3>
         <div class="info-section">
             <p><strong>Precio:</strong> {{ price }} €</p>
@@ -117,18 +158,19 @@
             <p><strong>Alquiler estimado:</strong> {{ precio_alquiler_estimado }} €/mes</p>
             <p><strong>Venta estimada:</strong> {{ precio_venta_estimado }} €</p>
             <p><strong>Habitaciones:</strong> {{ n_hab }}</p>
+            <p><strong>Tags:</strong> <div class="tags">{{ tags_to_emoji_string }} </div></p>
+            <p><strong>Barrio:</strong> {{ barrio }}</p>
+            <p><strong>Creado:</strong> {{ created }}</p>
+            <p><strong>Disponibilidad:</strong> <span class="availability">{{ disponibilidad }}</span> {{ availability_to_emoji_string }}</p>
             <strong>Descripción:</strong><br>
             <div class="description">
                 {{ description }}
             </div>
-            <p><strong>Tags:</strong></p>
-            <div class="tags">
-                {{ tags_to_emoji_string }}
-            </div>
-            <p><strong>Barrio:</strong> {{ barrio }}</p>
-            <p><strong>Creado:</strong> {{ created }}</p>
-            <p><strong>Disponibilidad:</strong> <span class="availability">{{ disponibilidad }}</span> {{ availability_to_emoji_string }}</p>
         </div>
+        <img src="data:image/png;base64,{{ grafico4_base64 }}"></br>
+
+
+        <h3>Análisis de la ubicación</h3>
         <img src="data:image/png;base64,{{ grafico1_base64 }}"></br>
         <img src="data:image/png;base64,{{ grafico2_base64 }}"></br>
         <img src="data:image/png;base64,{{ grafico3_base64 }}"></br>

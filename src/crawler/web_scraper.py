@@ -309,4 +309,68 @@ class WebScraper:
             self.logger.error(f"Error al enviar la solicitud: {response.status_code}: {response.reason}")
             return None
 
-# if __name__ == '__main__':
+    @staticmethod
+    def scrap_ollama():
+        import requests
+        import json
+
+        model = "llama3.1:8b"
+
+        # _format = { 
+        #     "type": "object",
+        #     "properties": {
+        #         'url': {'type': 'string'},
+        #         'tipo_inmueble':  {'type': 'string'},
+        #         'ubicacion':  {'type': 'string'},
+        #         'precio':  {'type': 'int'},
+        #         'superficie_m2':  {'type': 'int'},
+        #         'n_habitaciones':  {'type': 'int'},
+        #         'description':  {'type': 'string'},
+        #         'caracteristicas':  {'type': 'string'},
+        #     }
+        # }
+
+        # prompt = f"Analiza el codigo html siguiente y extrae las caracteristicas del inmueble, \
+        #     las caracteristicas son: url, tipo de inmueble, ubicacion, precio, superficie_m2,  numero de habitaciones, description. Respond using JSON. \n\n"
+
+        # html = open('tests/idealista_detalle_vivienda.html', 'r').read()
+
+        # html = """
+        #     Piso en venta en paseo de Gràcia
+        #     La Dreta de l'Eixample, Barcelona
+        #     1.350.000 € 1.400.000 € 4%
+        #     Calcular hipoteca
+        #     115 m² 3 hab. Planta 3ª exterior con ascensor
+        #     Luminoso
+        #     Guardar favorito
+        #     Descartar
+        #     Compartir
+        #     Comentario del anunciante
+        #     Disponible en: Español English Otros idiomas
+
+        #     Este piso de lujo se sitúa en el Paseo de Gracia, en un edificio obra del prestigioso arquitecto Josep Puig i Cadafalch, enfrente de la Casa Batlló y la Casa Ametller. Se trata de una ubicación envidiable en una de las mejores avenidas de toda Europa, rodeada de todas las comodidades y servicios que una ciudad como Barcelona te puede ofrecer.
+
+        
+        # """
+        # data = {
+        #     "prompt": prompt + html,
+        #     "model": model,
+        #     "format": 'json',
+        #     "stream": False,
+        #     "options": {"temperature": 2.5, "top_p": 0.99, "top_k": 100},
+        # }
+
+        # response = requests.post("http://localhost:11434/api/generate", json=data, stream=False)
+        # # print(response.status_code, response.text)
+        
+        # # write response to file
+        # with open('tests/idealista_detalle_vivienda.json', 'w') as f:
+        #     f.write(response.text)
+
+        # json_data = json.loads(response.text)
+
+        # print(json.dumps(json.loads(json_data["response"]), indent=2))     
+
+if __name__ == '__main__':
+    WebScraper.scrap_ollama()
+    
