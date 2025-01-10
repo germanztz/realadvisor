@@ -42,14 +42,13 @@ def generate_report(url):
 
     realty = Realty(**data)
     report_generator = ReportGenerator(datasets_path='datasets', output_dir='reports')
-    report = report_generator.generate_report(realty, 'report_template2.html')
+    report = report_generator.generate_report(realty, 'report_template3.html')
     return report
 
 # Create the Gradio interface with a single column layout
 with gr.Blocks() as demo:
     with gr.Row():
-        gr.Image(value="public/images/logo.png", scale=0, type="pil")
-        gr.Markdown("# Real Advisor \n ## Informe de Inversión Inmobiliaria")
+        gr.Markdown("# Real Advisor")
     
     output = gr.HTML(label="Informe de Inversión")
     url_input = gr.Textbox(label="Introduce la URL del inmueble y haz clic en Generar para generar el informe")

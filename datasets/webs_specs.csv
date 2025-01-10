@@ -1,0 +1,27 @@
+group,type,scope,name,value,options
+idealista,url,global,filter_url,https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc,
+idealista,regex,list,list_items,"<article class=""item(.+?)</article>",DOTALL
+idealista,regex,list,list_next,"<li class=""next""><a rel=""nofollow"" class=""icon-arrow-right-after"" href=""(.+?)"">",
+idealista,regex,list_field,link,"<a href=""(/inmueble/\d+?/)"" role=""heading"" aria-level=""2"" class=""item-link "" title="".+? en .+?"">",
+idealista,regex,list_field,type_v,"<a href="".+?"" role=""heading"" aria-level=""2"" class=""item-link "" title=""(.+?) en .+?"">",
+idealista,regex,list_field,address,"<a href="".+?"" role=""heading"" aria-level=""2"" class=""item-link "" title="".+? en (.+?)"">",
+idealista,regex,list_field,town,"<a href="".+?"" role=""heading"" aria-level=""2"" class=""item-link "" title="".+? en (.+?)"">",
+idealista,regex,list_field,price,"<span class=""item-price"">(.+?)</span>",
+idealista,regex,list_field,price_old,"<span class=""pricedown_price"">(.+?) €</span>",
+idealista,regex,list_field,info_sub,"<div class=""item-detail-char"">(.+?)</div>",
+idealista,regex,list_field,info_elem,"<span class=""item-detail"">(.*?)</span>",DOTALL
+idealista,regex,list_field,description,"<div class=""item-description description"">(.+?)</div>",
+idealista,regex,list_field,tags,"<span class=""listing-tags "">(.+?)</span>",DOTALL
+idealista,regex,list_field,agent,"<span class=""hightop-agent-name"">(.+?)</span>",
+idealista,lambda,list_field,link,"lambda m: f""https://www.idealista.com{m}"" if isinstance(m, str) else f""https://www.idealista.com{m.group(1)}""",
+idealista,regex,detail_field,link,"<link rel=""canonical"" href=""https://www.idealista.com(.+?)""/>",
+idealista,regex,detail_field,type_v,"<span class=""main-info__title-main"">(.+?) en venta en .+?</span>",
+idealista,regex,detail_field,address,"<span class=""main-info__title-main"">.+? en venta en (.+?)</span>",
+idealista,regex,detail_field,town,"<span class=""main-info__title-minor"">(.+?)</span>",
+idealista,regex,detail_field,price,"<span class=""info-data-price""><span class=""txt-bold"">(.+?)</span>",
+idealista,regex,detail_field,price_old,"<span class=""pricedown_price"">(.+?) €</span>",
+idealista,regex,detail_field,info_sub,"<section id=""details"" class=""details-box"">(.*?)</section>",
+idealista,regex,detail_field,info_elem,<li>(.*?)</li>,DOTALL
+idealista,regex,detail_field,description,"<div class=""adCommentsLanguage.+?><p>(.+?)</p></div>",DOTALL
+idealista,regex,detail_field,tags,"<span class=""tag "">(.+?)</span>",DOTALL
+idealista,regex,detail_field,agent,"<h2 class=""aditional-link_title .+? href=""(.+?)"".+?</a>",

@@ -311,6 +311,7 @@ class WebScraper:
 
     @staticmethod
     def scrap_ollama():
+
         import requests
         import json
 

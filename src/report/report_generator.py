@@ -87,7 +87,7 @@ class ReportGenerator:
             
         return html_path, pdf_path
 
-    def generate_report(self, realty: Realty, template_path: str = 'report_template2.html'):
+    def generate_report(self, realty: Realty, template_path: str = 'report_template3.html'):
         realty_report = RealtyReport(**realty.to_dict())
         self.load_indicators(realty_report)
         template = self.env.get_template(template_path)
@@ -98,6 +98,8 @@ class ReportGenerator:
         html_path = os.path.join(self.output_dir, f"{base_filename}{template_extension}")
         pdf_path = os.path.join(self.output_dir, f"{base_filename}.pdf")
         
+
+        logo_base64 = ReportGenerator.get_base64_file('public/images/logo.png')
         bcn_precios = pd.read_csv(self.precios_path)
         bcn_precios['mes'] = pd.to_datetime(bcn_precios['mes'])
         df = bcn_precios[bcn_precios['id'] == realty_report.id]
@@ -116,13 +118,14 @@ class ReportGenerator:
 
         html_content = template.render(
             **realty_report.to_dict(),
+            logo_base64=logo_base64,
             stars_to_emoji_string=self.stars_to_emoji(realty_report.global_score_stars),
             tags_to_emoji_string=self.tags_to_emoji(realty_report.tags),
             availability_to_emoji_string=self.availability_to_emoji(realty_report.disponibilidad),
-            grafico1_base64 = ReportGenerator.load_plot_cache(grafico1_base64),
-            grafico2_base64 = ReportGenerator.load_plot_cache(grafico2_base64),
-            grafico3_base64 = ReportGenerator.load_plot_cache(grafico3_base64),
-            grafico4_base64 = ReportGenerator.load_plot_cache(grafico4_base64),
+            grafico1_base64 = ReportGenerator.get_base64_file(grafico1_base64),
+            grafico2_base64 = ReportGenerator.get_base64_file(grafico2_base64),
+            grafico3_base64 = ReportGenerator.get_base64_file(grafico3_base64),
+            grafico4_base64 = ReportGenerator.get_base64_file(grafico4_base64),
             )
 
         # Save HTML
@@ -137,7 +140,6 @@ class ReportGenerator:
         pdfkit.from_file(html_path, pdf_path)
         # os.chown(pdf_path, 65534, 65534)            
         # os.chmod(pdf_path, 0o777)
-
 
         return html_content
 
@@ -322,7 +324,7 @@ class ReportGenerator:
         return plot_path
     
     @staticmethod
-    def load_plot_cache(plot_path):
+    def get_base64_file(plot_path):
         """ Retuns a base64 encoded image from cache if exists """
         if os.path.exists(plot_path):
             with open(plot_path, 'rb') as f:
