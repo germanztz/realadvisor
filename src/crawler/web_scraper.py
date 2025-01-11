@@ -67,9 +67,9 @@ class WebScraper:
         # headers = {"User-Agent": ua.random}
 
         # list_columns = [f.replace('_sub', '') for f in self.list_items_fields.keys() if 'elem' not in f]
-        self.data = pd.DataFrame()
-        # if os.path.exists(self.datafile_path):
-        #     self.data = pd.read_csv(self.datafile_path)
+        self.data = None
+        if os.path.exists(self.datafile_path):
+            self.data = pd.read_csv(self.datafile_path)
 
     def init_headers(self, url):
         self.set_url(url)
@@ -255,11 +255,12 @@ class WebScraper:
             curr_page = self.parse_list(content, self.list_items_rx, self.list_items_fields, self.post_fields_lambda)
 
             curr_page_df = pd.DataFrame(curr_page)
-            repetidos = curr_page_df['link'].isin(self.data['link'])
-            hay_repetidos = repetidos.any()
-            registros_nuevos = curr_page_df[~repetidos]
-            self.data = pd.concat([self.data, registros_nuevos], ignore_index=True)
-            self.logger.info(f"Elementos añadidos a la bbdd: {len(registros_nuevos)}")
+            if (self.data is not None):
+                repetidos = curr_page_df['link'].isin(self.data['link'])
+                hay_repetidos = repetidos.any()
+                curr_page_df = curr_page_df[~repetidos]
+            self.data = pd.concat([self.data, curr_page_df], ignore_index=True)
+            self.logger.info(f"Elementos añadidos a la bbdd: {len(curr_page_df)}")
             
             self.data.to_csv(self.datafile_path, index=False)
 

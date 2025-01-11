@@ -90,7 +90,6 @@ class WebCrawler:
         for group in self.web_specs['group'].unique():
             self.run_scrap_group(group)
 
-
 if __name__ == '__main__':
     web_crawler = WebCrawler(webs_specs_datafile_path = 'datasets/webs_specs.csv', realty_datafile_path = 'datasets/idealista_datafile.csv')
     web_crawler.run_crawler()
