@@ -2,6 +2,8 @@ import sys
 import os
 from pathlib import Path
 from datetime import datetime
+import logging
+import logging.config
 
 import pandas as pd
 import numpy as np # type: ignore
@@ -22,6 +24,11 @@ class ReportGenerator:
     CACHE_DIR = 'plot_cache'
 
     def __init__(self, datasets_path: str = 'datasets', template_path: str = 'report_template.html', output_dir: str = 'reports'):
+
+        logging.config.fileConfig('logging.conf')
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.info(f'Init {self.__class__.__name__}')
+
         # Get the directory where this script is located
         current_dir = os.path.dirname(os.path.abspath(__file__))
         # Initialize Jinja environment with the correct template directory

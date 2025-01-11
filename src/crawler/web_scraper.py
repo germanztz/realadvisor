@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 import requests
 import time
 import random
@@ -9,7 +10,7 @@ import pandas as pd
 import os
 import warnings
 import logging
-import warnings
+import logging.config
 
 class WebScraper:
 
@@ -17,7 +18,7 @@ class WebScraper:
     # TODO: Implementar el scrapping de un array de URLs
     # TODO: Implementar sin pandas ni numpy
     
-    def __init__(self, url = None, datafile_path = None, list_items_rx = None, list_items_fields = None, list_next_rx = None, detail_fields = None, post_fields_lambda = None):
+    def __init__(self, url=None, datafile_path: Path=None, list_items_rx=None, list_items_fields=None, list_next_rx=None, detail_fields=None, post_fields_lambda=None):
         '''
         Class for scraping a website and obtaining a database
         
@@ -25,7 +26,7 @@ class WebScraper:
         ----------
         url : str
             initial url of the website to scrape
-        datafile_path : str
+        datafile_path : Path
             path of the file where the database will be saved
         list_items_rx : regex
             regular expression to obtain the items of the list view
@@ -41,19 +42,12 @@ class WebScraper:
 
         warnings.filterwarnings('ignore')
 
-        log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'WebScraper.log')
-        logging.basicConfig(filename=log_path, level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
-        self.logger = logging.getLogger(__name__)
-        # Crear un handler para mostrar en la consola
-        console_handler = logging.StreamHandler()  # Por defecto va a stderr
-        console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
-        self.logger.addHandler(console_handler)
-        self.logger.info(f'Init WebScraper')
-
+        logging.config.fileConfig('logging.conf')
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.info(f'Init {self.__class__.__name__}')
 
         self.set_url(url)
-        self.datafile_path = datafile_path
+        self.datafile_path = datafile_path if datafile_path else None
         self.list_items_rx = list_items_rx        
         self.list_items_fields = list_items_fields
         self.detail_fields = detail_fields
@@ -68,7 +62,7 @@ class WebScraper:
 
         # list_columns = [f.replace('_sub', '') for f in self.list_items_fields.keys() if 'elem' not in f]
         self.data = None
-        if os.path.exists(self.datafile_path):
+        if self.datafile_path and self.datafile_path.exists():
             self.data = pd.read_csv(self.datafile_path)
 
     def init_headers(self, url):

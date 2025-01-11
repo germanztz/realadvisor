@@ -3,6 +3,7 @@ import sys
 import re
 sys.path.append('src/crawler')
 from web_scraper import WebScraper
+from pathlib import Path
 
 class TestWebScraper(unittest.TestCase):
 
@@ -40,7 +41,7 @@ class TestWebScraper(unittest.TestCase):
         }
 
         self.url = 'https://www.TestWebScraper.local'
-        self.datafile = __file__+'_datafile.csv'
+        self.datafile = Path(__file__+'_datafile.csv')
         
         self.post_fields_lambda = {
             'link': lambda m: f"https://www.TestWebScraper.local{m}" if isinstance(m, str) else m,

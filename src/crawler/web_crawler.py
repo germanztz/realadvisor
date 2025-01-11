@@ -1,5 +1,8 @@
+from pathlib import Path
 import pandas as pd
 import re
+import logging
+import logging.config
 import warnings
 warnings.filterwarnings('ignore', category=SyntaxWarning)
 import sys
@@ -9,7 +12,11 @@ from web_scraper import WebScraper
 
 class WebCrawler:
 
-    def __init__(self, webs_specs_datafile_path = 'datasets/webs_specs.csv', realty_datafile_path = 'datasets/realties.csv'):
+    def __init__(self, webs_specs_datafile_path:Path = Path('webs_specs.csv'), realty_datafile_path: Path = Path('realties.csv')):
+
+        logging.config.fileConfig('logging.conf')
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.info(f'Init {self.__class__.__name__}')
 
         self.webs_specs_datafile_path = webs_specs_datafile_path
         self.realty_datafile_path = realty_datafile_path
@@ -91,5 +98,6 @@ class WebCrawler:
             self.run_scrap_group(group)
 
 if __name__ == '__main__':
-    web_crawler = WebCrawler(webs_specs_datafile_path = 'datasets/webs_specs.csv', realty_datafile_path = 'datasets/idealista_datafile.csv')
+
+    web_crawler = WebCrawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/idealista_datafile.csv'))
     web_crawler.run_crawler()
