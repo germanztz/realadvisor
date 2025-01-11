@@ -18,7 +18,7 @@ class TestRealtyReport(unittest.TestCase):
         self.assertEqual(realty.price_old, 260000)
         self.assertEqual(realty.tags, ['terraza', 'barcelona reformado'])
         self.assertEqual(realty.description, 'piso en venta en barcelona reformado y con terraza ocupada')
-        self.assertEqual(realty.town, 'sant andreu')
+        self.assertEqual(realty.town, 'sant andreu, barcelona')
              
 
     # Test abstract methods of the class
