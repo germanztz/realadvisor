@@ -1,15 +1,26 @@
 import pandas as pd
 import re
 import warnings
+warnings.filterwarnings('ignore', category=SyntaxWarning)
+import sys
+sys.path.append('src/crawler')
+from web_scraper import WebScraper
+
 
 class WebCrawler:
 
     def __init__(self, webs_specs_datafile_path = 'datasets/webs_specs.csv', realty_datafile_path = 'datasets/realties.csv'):
 
-        warnings.filterwarnings('ignore', category=SyntaxWarning)
+        self.webs_specs_datafile_path = webs_specs_datafile_path
+        self.realty_datafile_path = realty_datafile_path
+        self.web_specs = pd.read_csv(self.webs_specs_datafile_path)
+        # self.realties = pd.read_csv(realty_datafile_path)
+        # self.init_datafile(webs_specs_datafile_path)
+
+    def init_datafile(self, webs_specs_datafile_path = 'datasets/webs_specs.csv'):
 
         idealista = [
-            { 'group': 'idealista', 'type': 'url', 'scope': 'global', 'name': 'filter_url', 'value': 'https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc' },
+            { 'group': 'idealista', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc' },
 
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list', 'name': 'list_items', 'value': '<article class="item(.+?)</article>', 'options': 'DOTALL' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list', 'name': 'list_next', 'value': '<li class="next"><a rel="nofollow" class="icon-arrow-right-after" href="(.+?)">' },
@@ -39,23 +50,14 @@ class WebCrawler:
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'description', 'value': '<div class="adCommentsLanguage.+?><p>(.+?)</p></div>', 'options': 'DOTALL' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'tags', 'value': '<span class="tag ">(.+?)</span>', 'options': 'DOTALL' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'agent', 'value': '<h2 class="aditional-link_title .+? href="(.+?)".+?</a>' },
-
         ]
 
-        self.web_specs = pd.DataFrame(idealista)
-        self.web_specs.to_csv(webs_specs_datafile_path, index=False)
+        web_specs = pd.DataFrame(idealista)
+        web_specs.to_csv(webs_specs_datafile_path, index=False)
 
-        list_items = self.get_dict_rx(self.web_specs, 'idealista', 'list')['list_items']
-        list_next = self.get_dict_rx(self.web_specs, 'idealista', 'list')['list_next']
-        list_field = self.get_dict_rx(self.web_specs, 'idealista', 'list_field')
-        detail_field = self.get_dict_rx(self.web_specs, 'idealista', 'detail_field')
-
-        fields_lambda = self.get_dict_lambda(self.web_specs, 'idealista', 'list_field')
-        print(fields_lambda)
-
-        # self.realty_datafile_path = realty_datafile_path
-        # self.datafile_path = datafile_path
-        # self.web_specs = pd.read_csv(self.datafile_path)
+    def get_by_name(self, df, group, dtype, scope, name) -> str:
+        df = df[(df['group'] == group) & (df['type'] == dtype) & (df['scope'] == scope) & (df['name'] == name)]
+        return df['value'].values[0]
 
     def get_dict_rx(self, df, group, scope) -> dict:
         result = {}
@@ -72,5 +74,23 @@ class WebCrawler:
             result[row['name']] = eval(row['value'])
         return result
 
+    def run_scrap_group(self, group):
+
+        url = self.get_by_name(self.web_specs, group, 'url', 'global', 'base_url')
+        list_items = self.get_dict_rx(self.web_specs, group, 'list')['list_items']
+        list_next = self.get_dict_rx(self.web_specs, group, 'list')['list_next']
+        list_fields = self.get_dict_rx(self.web_specs, group, 'list_field')
+        detail_fields = self.get_dict_rx(self.web_specs, group, 'detail_field')
+        fields_lambda = self.get_dict_lambda(self.web_specs, group, 'list_field')
+
+        webScraper = WebScraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda)
+        webScraper.scrap()
+
+    def run_crawler(self):
+        for group in self.web_specs['group'].unique():
+            self.run_scrap_group(group)
+
+
 if __name__ == '__main__':
-    web_crawler = WebCrawler()
+    web_crawler = WebCrawler(webs_specs_datafile_path = 'datasets/webs_specs.csv', realty_datafile_path = 'datasets/idealista_datafile.csv')
+    web_crawler.run_crawler()
