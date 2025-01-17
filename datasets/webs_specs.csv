@@ -25,3 +25,20 @@ idealista,regex,detail_field,info_elem,<li>(.*?)</li>,DOTALL
 idealista,regex,detail_field,description,"<div class=""adCommentsLanguage.+?><p>(.+?)</p></div>",DOTALL
 idealista,regex,detail_field,tags,"<span class=""tag "">(.+?)</span>",DOTALL
 idealista,regex,detail_field,agent,"<h2 class=""aditional-link_title .+? href=""(.+?)"".+?</a>",
+fotocasa,url,global,base_url,https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate,
+fotocasa,regex,list,list_items,accuracy(.+?)userId,DOTALL
+fotocasa,regex,list,list_next,"""rel"":""next"",""href"":""(.*?)""",
+fotocasa,regex,list_field,link,"""detail"":.*?:""(.*?)""",
+fotocasa,regex,list_field,type_v,"""buildingType"":""(.*?)""",
+fotocasa,regex,list_field,address,"""neighborhood"":""(.*?)""",
+fotocasa,regex,list_field,town,"""district"":""(.*?)""",
+fotocasa,regex,list_field,price,"""rawPrice"":(\d+),",
+fotocasa,regex,list_field,price_old,"""reducedPrice"":(\d+),",
+fotocasa,regex,list_field,info,"""features"":(\[.*?\])",
+fotocasa,regex,list_field,description,"""description"":""(.*?)""",
+fotocasa,regex,list_field,tags,,
+fotocasa,regex,list_field,agent,"""clientUrl"":""(.*?)""",
+fotocasa,lambda,list_field,elements_html,"lambda m: m.replace(""\\"", """")",
+fotocasa,lambda,list_field,link,"lambda m: f""https://www.fotocasa.es{m}"" if isinstance(m, str) else f""https://www.fotocasa.es{m.group(1)}""",
+fotocasa,lambda,list_field,info,"lambda m: m.replace(""key:"","""").replace("",maxValue:0,minValue:0"","""").replace("",value"","""").replace(""{"",""'"").replace(""}"",""'"")",
+fotocasa,lambda,list_field,agent,"lambda m: f""https://www.fotocasa.es{m}"" if isinstance(m, str) else f""https://www.fotocasa.es{m.group(1)}""",
