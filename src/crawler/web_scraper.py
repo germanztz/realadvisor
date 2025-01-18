@@ -42,7 +42,7 @@ class WebScraper:
 
         warnings.filterwarnings('ignore')
 
-        logging.config.fileConfig('logging.conf')
+        logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info(f'Init {self.__class__.__name__}')
 
@@ -64,6 +64,7 @@ class WebScraper:
         self.data = None
         if self.datafile_path and self.datafile_path.exists():
             self.data = pd.read_csv(self.datafile_path)
+
 
     def init_headers(self, url):
         self.set_url(url)
@@ -198,6 +199,10 @@ class WebScraper:
 
         self.logger.info(f'Campos a extraer: {list_columns}')
 
+        if elements_html is None:
+            self.logger.warn(f'la busqueda de elementos de la lista devolvió None {list_items_rx}')
+            return None
+
         item_list = list()
         for elem_html in elements_html:
             item_list += [self.parse_item(elem_html, fields_rx, post_fields_lambda)]
@@ -246,6 +251,7 @@ class WebScraper:
     def store_page_csv(self, curr_page):
 
         if self.datafile_path is None: return
+        if curr_page is None or len(curr_page) == 0: return
 
         hay_repetidos = False
         curr_page_df = pd.DataFrame(curr_page)
@@ -268,7 +274,7 @@ class WebScraper:
             self.logger.info('Finalizado, se han procesado los nuevos elementos')
         else:
             time.sleep(random.uniform(1, 5))
-            self.set_url(self.base_url+next_href)
+            self.set_url(next_href)
             self.scrap()
 
     def scrap_realty(self, url, detail_fields = None, post_fields_lambda = None) -> dict:
@@ -345,20 +351,15 @@ class WebScraper:
 
         # print(json.dumps(json.loads(json_data["response"]), indent=2))     
 
-    def __del__(self):
-        # libera los logger
-        # for handler in self.logger.handlers[:]:
-        #     self.logger.removeHandler(handler)
-        self.logger.handlers.clear()  # Clear existing handlers before deletion
-
-
 if __name__ == '__main__':
 
-    if Path('realadvisor.log').exists():
-            os.remove('realadvisor.log')
+    if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
+
     with open('tests/fotocasa_lista.html', 'r') as f:
         content = f.read().replace("\n", "").replace("\r", "")
         list_items = { 'list_items': re.compile(r'accuracy(.+?)userId',re.DOTALL)}
+        next_page =  { 'next_page': re.compile(r'\\"rel\\":\\"next\\",\\"href\\":\\"(.*?)\\"') }
+
         list_fields = { 
             'rooms': re.compile(r'"key":"rooms","value":(\d+),', re.DOTALL), 
         }
@@ -367,9 +368,11 @@ if __name__ == '__main__':
             'info': lambda x: ': '.join(x)
         }
 
-        webScraper = WebScraper('https://tt.com', None, list_items, list_fields, None, None, fields_lambda)
-        data = webScraper.scrap_page(content)
-        print(data)
+        webScraper = WebScraper('https://tt.com', None, list_items, list_fields, next_page, None, fields_lambda)
+        curr_page = webScraper.scrap_page(content)
+        hay_repetidos = webScraper.store_page_csv(curr_page)
+        webScraper.paginate(content, hay_repetidos)
+        print(curr_page)
     # [{"key":"air_conditioner","value":1,"maxValue":0,"minValue":0},{"key":"ceramic_stoneware","value":6,"maxValue":0,"minValue":0},{"key":"alarm","value":77,"maxValue":0,"minValue":0},{"key":"not_furnished","value":130,"maxValue":0,"minValue":0},{"key":"antiquity","value":7,"maxValue":0,"minValue":0},{"key":"bathrooms","value":2,"maxValue":0,"minValue":0},{"key":"conservationStatus","value":4,"maxValue":0,"minValue":0},{"key":"floor","value":3,"maxValue":0,"minValue":0},{"key":"rooms","value":2,"maxValue":0,"minValue":0},{"key":"surface","value":50,"maxValue":0,"minValue":0}]
 
 

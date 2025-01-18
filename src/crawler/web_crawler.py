@@ -46,6 +46,7 @@ class WebCrawler:
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'tags', 'value': '<span class="listing-tags ">(.+?)</span>', 'options': 'DOTALL' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'agent', 'value': '<span class="hightop-agent-name">(.+?)</span>' },
 
+            { 'group': 'idealista', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_next', 'value': 'lambda m: f"https://www.idealista.com{m}" if isinstance(m, str) else f"https://www.idealista.com{m.group(1)}"' },
             { 'group': 'idealista', 'type': 'lambda', 'scope': 'list_field', 'name': 'link', 'value': 'lambda m: f"https://www.idealista.com{m}" if isinstance(m, str) else f"https://www.idealista.com{m.group(1)}"' },
             { 'group': 'idealista', 'type': 'lambda', 'scope': 'list_field', 'name': 'price', 'value': 'lambda m: m.replace(".", "")' },
             { 'group': 'idealista', 'type': 'lambda', 'scope': 'list_field', 'name': 'price_old', 'value': 'lambda m: m.replace(".", "")' },
@@ -67,7 +68,7 @@ class WebCrawler:
             { 'group': 'fotocasa', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate' },
 
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_items', 'name': 'list_items', 'value': 'accuracy(.+?)userId', 'options': 'DOTALL' },
-            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_next', 'name': 'list_next', 'value': '"rel":"next","href":"(.*?)"' },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_next', 'name': 'list_next', 'value': '\\\\"rel\\\\":\\\\"next\\\\",\\\\"href\\\\":\\\\"(.*?)\\\\"' },
 
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'link', 'value': '"detail":.*?:"(.*?)"' },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'type_v', 'value': '"buildingType":"(.*?)"'},
@@ -139,10 +140,9 @@ class WebCrawler:
         fields_lambda = self.get_dict_lambda(self.web_specs, group, 'list_field')
 
         webScraper = WebScraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda)
-        # webScraper.scrap()
-        data = webScraper.scrap_page(open(f'tests/{group}_lista.html', 'r').read().replace("\n", "").replace("\r", ""))
-        webScraper.store_page_csv(data)
-        del webScraper
+        webScraper.scrap()
+        # data = webScraper.scrap_page(open(f'tests/{group}_lista.html', 'r').read().replace("\n", "").replace("\r", ""))
+        # webScraper.store_page_csv(data)
 
     def run_crawler(self):
         for group in self.web_specs['group'].unique():
@@ -152,8 +152,7 @@ if __name__ == '__main__':
 
     # delete logfile
     import os
-    if Path('realadvisor.log').exists():
-        os.remove('realadvisor.log')
+    if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
     web_crawler = WebCrawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'))
     web_crawler.run_crawler()
