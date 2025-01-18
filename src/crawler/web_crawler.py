@@ -69,13 +69,15 @@ class WebCrawler:
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'address', 'value': '"neighborhood":"(.*?)"' },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'town', 'value': '"district":"(.*?)"' },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'price', 'value': '"rawPrice":(\\d+),' },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'rooms', 'value': '"key":"rooms","value":(\\d+),' },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'surface', 'value': '"key":"surface","value":(\\d+),' },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'price_old', 'value': '"reducedPrice":(\\d+),' },
-            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'info', 'value': '\\{"key":"(.*?)","value":(.*?),"maxValue".*?\\}' },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'info', 'value': '"key":"(.*?)","value":(.*?),"maxValue"' },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'description', 'value': '"description":"(.*?)"' },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'tags', 'value': None },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'agent', 'value': '"clientUrl":"(.*?)"' },
 
-            { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'elements_html', 'value': 'lambda m: m.replace("\\\\", "")' },
+            { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_items', 'value': 'lambda m: m.replace("\\\\", "")' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'link', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'info', 'value': 'lambda x: ": ".join(x)' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'agent', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
@@ -122,8 +124,8 @@ class WebCrawler:
     def run_scrap_group(self, group):
 
         url = self.get_by_name(self.web_specs, group, 'url', 'global', 'base_url')
-        list_items = self.get_dict_rx(self.web_specs, group, 'list')['list_items']
-        list_next = self.get_dict_rx(self.web_specs, group, 'list')['list_next']
+        list_items = self.get_dict_rx(self.web_specs, group, 'list')
+        list_next = self.get_dict_rx(self.web_specs, group, 'list')
         list_fields = self.get_dict_rx(self.web_specs, group, 'list_field')
         detail_fields = self.get_dict_rx(self.web_specs, group, 'detail_field')
         fields_lambda = self.get_dict_lambda(self.web_specs, group, 'list_field')

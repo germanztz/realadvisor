@@ -8,7 +8,7 @@ from pathlib import Path
 class TestWebScraper(unittest.TestCase):
 
     def setUp(self):
-        self.list_items_rx = re.compile(r'<article class="item(.+?)</article>', re.DOTALL)
+        self.list_items_rx = {'list_items_rx':re.compile(r'<article class="item(.+?)</article>', re.DOTALL)}
 
         self.list_item_fields_rx = {
             'link': re.compile(r'<a href="(/inmueble/\d+?/)" role="heading" aria-level="2" class="item-link " title=".+? en .+?">'),
@@ -24,7 +24,7 @@ class TestWebScraper(unittest.TestCase):
             'agent': re.compile(r'<span class="hightop-agent-name">(.+?)</span>')
         }
 
-        self.list_next_rx = re.compile(r'<li class="next"><a rel="nofollow" class="icon-arrow-right-after" href="(.+?)">')
+        self.list_next_rx = {'list_next_rx':re.compile(r'<li class="next"><a rel="nofollow" class="icon-arrow-right-after" href="(.+?)">')}
 
         self.detail_item_fields_rx = {
             'link': re.compile(r'<link rel="canonical" href="https://www.idealista.com(.+?)"/>'),

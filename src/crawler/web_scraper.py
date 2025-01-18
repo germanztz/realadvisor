@@ -18,7 +18,7 @@ class WebScraper:
     # TODO: Implementar el scrapping de un array de URLs
     # TODO: Implementar sin pandas ni numpy
     
-    def __init__(self, url=None, datafile_path: Path=None, list_items_rx=None, list_items_fields=None, list_next_rx=None, detail_fields=None, post_fields_lambda=None):
+    def __init__(self, url=None, datafile_path: Path=None, list_items: dict=None, list_items_fields: dict=None, list_next: dict=None, detail_fields:dict=None, post_fields_lambda:dict=None):
         '''
         Class for scraping a website and obtaining a database
         
@@ -28,11 +28,11 @@ class WebScraper:
             initial url of the website to scrape
         datafile_path : Path
             path of the file where the database will be saved
-        list_items_rx : regex
+        list_items_rx : dict
             regular expression to obtain the items of the list view
         list_items_fields : dict
             dictionary of regular expressions to obtain the fields of each item of the list view
-        list_next_rx : regex
+        list_next_rx : dict
             regular expression to obtain the link of the next page of the list view
         detail_fields : dict
             dictionary of regular expressions to obtain the fields of each item of the detail view
@@ -48,10 +48,10 @@ class WebScraper:
 
         self.init_headers(url)
         self.datafile_path = datafile_path if datafile_path else None
-        self.list_items_rx = list_items_rx        
+        self.list_items_rx = list_items        
         self.list_items_fields = list_items_fields
         self.detail_fields = detail_fields
-        self.list_next_rx = list_next_rx
+        self.list_next_rx = list_next
         self.post_fields_lambda = post_fields_lambda
 
         # 5. Rotación de Agentes de Usuario (User-Agent)
@@ -192,7 +192,8 @@ class WebScraper:
         Raises:
             Exception: If there is an error during parsing, it logs the error and returns None.
         """
-        elements_html = self.parse_field(html, 'elements_html', {'elements_html': list_items_rx}, post_fields_lambda)
+        elements_html = self.parse_item(html, list_items_rx, post_fields_lambda)
+        elements_html = elements_html[next(iter(list_items_rx.keys()))]
         list_columns = [f.replace('_sub', '') for f in fields_rx.keys() if 'elem' not in f]
 
         self.logger.info(f'Campos a extraer: {list_columns}')
@@ -256,7 +257,9 @@ class WebScraper:
         self.data.to_csv(self.datafile_path, index=False)
 
     def paginate(self, content):
-        next_href = self.parse_field(content, 'next_page', {'next_page': self.list_next_rx}, self.post_fields_lambda)
+
+        next_href = self.parse_item(content, self.list_next_rx, self.post_fields_lambda)
+        next_href = next_href[next(iter(self.list_next_rx.keys()))]
         if next_href is None:
             self.logger.info('Finalizado, se ha procesado la última página')
         elif hay_repetidos:
@@ -346,15 +349,12 @@ if __name__ == '__main__':
             os.remove('realadvisor.log')
     with open('tests/fotocasa_lista.html', 'r') as f:
         content = f.read().replace("\n", "").replace("\r", "")
-        list_items = re.compile(r'accuracy(.+?)userId',re.DOTALL)
+        list_items = { 'list_items': re.compile(r'accuracy(.+?)userId',re.DOTALL)}
         list_fields = { 
-            # 'info': re.compile(r'"features":(\[.*?\])'), 
-            'info': re.compile(r'\{"key":"(.*?)","value":(.*?),"maxValue".*?\}', re.DOTALL), 
-            # 'info2_sub': re.compile(r'"key":"(.*?)","value":"(.*?)"') 
-            # 'info2_sub': re.compile(r'(.*?)') 
+            'rooms': re.compile(r'"key":"rooms","value":(\d+),', re.DOTALL), 
         }
         fields_lambda = { 
-            'elements_html': lambda m: m.replace('\\', ''),
+            'list_items': lambda m: m.replace('\\', ''),
             'info': lambda x: ': '.join(x)
         }
 
