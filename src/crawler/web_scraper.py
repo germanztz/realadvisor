@@ -231,9 +231,9 @@ class WebScraper:
 
             content = self.get_content(response)
             curr_page = self.scrap_page(content)
-            self.store_page_csv(curr_page)
+            hay_repetidos = self.store_page_csv(curr_page)
             self.logger.info(f'Tiempo transcurrido: {time.perf_counter() - start}')
-            self.paginate(content)
+            self.paginate(content, hay_repetidos)
 
         else:
             self.logger.error(f"Error al enviar la solicitud: {response.status_code}: {response.reason}")
@@ -247,6 +247,7 @@ class WebScraper:
 
         if self.datafile_path is None: return
 
+        hay_repetidos = False
         curr_page_df = pd.DataFrame(curr_page)
         if (self.data is not None):
             repetidos = curr_page_df['link'].isin(self.data['link'])
@@ -255,8 +256,9 @@ class WebScraper:
         self.data = pd.concat([self.data, curr_page_df], ignore_index=True)
         self.logger.info(f"Elementos añadidos a la bbdd: {len(curr_page_df)}")
         self.data.to_csv(self.datafile_path, index=False)
+        return hay_repetidos
 
-    def paginate(self, content):
+    def paginate(self, content, hay_repetidos):
 
         next_href = self.parse_item(content, self.list_next_rx, self.post_fields_lambda)
         next_href = next_href[next(iter(self.list_next_rx.keys()))]
@@ -342,6 +344,13 @@ class WebScraper:
         # json_data = json.loads(response.text)
 
         # print(json.dumps(json.loads(json_data["response"]), indent=2))     
+
+    def __del__(self):
+        # libera los logger
+        # for handler in self.logger.handlers[:]:
+        #     self.logger.removeHandler(handler)
+        self.logger.handlers.clear()  # Clear existing handlers before deletion
+
 
 if __name__ == '__main__':
 

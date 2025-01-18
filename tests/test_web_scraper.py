@@ -16,6 +16,8 @@ class TestWebScraper(unittest.TestCase):
             'address': re.compile(r'<a href=".+?" role="heading" aria-level="2" class="item-link " title=".+? en (.+?)">'),
             'town': re.compile(r'<a href=".+?" role="heading" aria-level="2" class="item-link " title=".+? en (.+?)">'),
             'price': re.compile(r'<span class="item-price h2-simulated">(.+?)<span class="txt-big">€</span></span>'),
+            'rooms': re.compile(r'<span class="item-detail">(\d+) hab.</span>'),
+            'surface': re.compile(r'<span class="item-detail">(\d+) m²</span>'),
             'price_old': re.compile(r'<span class="pricedown_price">(.+?) €</span>'),
             'info_sub': re.compile(r'<div class="item-detail-char">(.+?)</div>'),
             'info_elem': re.compile(r'<span class="item-detail">(.*?)</span>', re.DOTALL),
@@ -32,6 +34,8 @@ class TestWebScraper(unittest.TestCase):
             'address': re.compile(r'<span class="main-info__title-main">.+? en venta en (.+?)</span>'),
             'town': re.compile(r'<span class="main-info__title-minor">(.+?)</span>'),
             'price': re.compile(r'<span class="info-data-price"><span class="txt-bold">(.+?)</span>'),
+            'rooms': None,
+            'surface': None,
             'price_old': re.compile(r'<span class="pricedown_price">(.+?) €</span>'),
             'info_sub': re.compile(r'<section id="details" class="details-box">(.*?)</section>'),
             'info_elem': re.compile(r'<li>(.*?)</li>', re.DOTALL),
@@ -52,6 +56,7 @@ class TestWebScraper(unittest.TestCase):
     def test_parse_list(self):
         webScraper = WebScraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx, self.post_fields_lambda)
         alist = webScraper.parse_list(open('tests/idealista_lista_de_viviendas2.html', 'r').read().replace("\n", "").replace("\r", ""), self.list_items_rx, self.list_item_fields_rx, self.post_fields_lambda)
+        print(alist)
         self.assertEqual(len(alist), 30)
 
     def test_parse_item(self):

@@ -29,28 +29,34 @@ class WebCrawler:
         idealista = [
             { 'group': 'idealista', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc' },
 
-            { 'group': 'idealista', 'type': 'regex', 'scope': 'list', 'name': 'list_items', 'value': '<article class="item(.+?)</article>', 'options': 'DOTALL' },
-            { 'group': 'idealista', 'type': 'regex', 'scope': 'list', 'name': 'list_next', 'value': '<li class="next"><a rel="nofollow" class="icon-arrow-right-after" href="(.+?)">' },
+            { 'group': 'idealista', 'type': 'regex', 'scope': 'list_items', 'name': 'list_items', 'value': '<article class="item(.+?)</article>', 'options': 'DOTALL' },
+            { 'group': 'idealista', 'type': 'regex', 'scope': 'list_next', 'name': 'list_next', 'value': '<li class="next"><a rel="nofollow" class="icon-arrow-right-after" href="(.+?)">' },
 
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'link', 'value': '<a href="(/inmueble/\\d+?/)" role="heading" aria-level="2" class="item-link " title=".+? en .+?">' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'type_v', 'value': '<a href=".+?" role="heading" aria-level="2" class="item-link " title="(.+?) en .+?">' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'address', 'value': '<a href=".+?" role="heading" aria-level="2" class="item-link " title=".+? en (.+?)">' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'town', 'value': '<a href=".+?" role="heading" aria-level="2" class="item-link " title=".+? en (.+?)">' },
-            { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'price', 'value': '<span class="item-price">(.+?)</span>' },
+            { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'price', 'value': '<span class="item-price.+?>(.+?)<' },
+            { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'rooms', 'value': '<span class="item-detail">(\\d+) hab.</span>' },
+            { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'surface', 'value': '<span class="item-detail">(\\d+) m²</span>' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'price_old', 'value': '<span class="pricedown_price">(.+?) €</span>' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'info_sub', 'value': '<div class="item-detail-char">(.+?)</div>' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'info_elem', 'value': '<span class="item-detail">(.*?)</span>', 'options': 'DOTALL' },
-            { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'description', 'value': '<div class="item-description description">(.+?)</div>' },
+            { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'description', 'value': '<p class="ellipsis.*?>(.+?)<' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'tags', 'value': '<span class="listing-tags ">(.+?)</span>', 'options': 'DOTALL' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'agent', 'value': '<span class="hightop-agent-name">(.+?)</span>' },
 
             { 'group': 'idealista', 'type': 'lambda', 'scope': 'list_field', 'name': 'link', 'value': 'lambda m: f"https://www.idealista.com{m}" if isinstance(m, str) else f"https://www.idealista.com{m.group(1)}"' },
+            { 'group': 'idealista', 'type': 'lambda', 'scope': 'list_field', 'name': 'price', 'value': 'lambda m: m.replace(".", "")' },
+            { 'group': 'idealista', 'type': 'lambda', 'scope': 'list_field', 'name': 'price_old', 'value': 'lambda m: m.replace(".", "")' },
 
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'link', 'value': '<link rel="canonical" href="https://www.idealista.com(.+?)"/>' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'type_v', 'value': '<span class="main-info__title-main">(.+?) en venta en .+?</span>' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'address', 'value': '<span class="main-info__title-main">.+? en venta en (.+?)</span>' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'town', 'value': '<span class="main-info__title-minor">(.+?)</span>' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'price', 'value': '<span class="info-data-price"><span class="txt-bold">(.+?)</span>' },
+            { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'rooms', 'value': None },
+            { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'surface', 'value': None },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'price_old', 'value': '<span class="pricedown_price">(.+?) €</span>' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'info_sub', 'value': '<section id="details" class="details-box">(.*?)</section>' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'info_elem', 'value': '<li>(.*?)</li>', 'options': 'DOTALL' },
@@ -58,11 +64,10 @@ class WebCrawler:
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'tags', 'value': '<span class="tag ">(.+?)</span>', 'options': 'DOTALL' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'agent', 'value': '<h2 class="aditional-link_title .+? href="(.+?)".+?</a>' },
 
-
             { 'group': 'fotocasa', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate' },
 
-            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list', 'name': 'list_items', 'value': 'accuracy(.+?)userId', 'options': 'DOTALL' },
-            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list', 'name': 'list_next', 'value': '"rel":"next","href":"(.*?)"' },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_items', 'name': 'list_items', 'value': 'accuracy(.+?)userId', 'options': 'DOTALL' },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_next', 'name': 'list_next', 'value': '"rel":"next","href":"(.*?)"' },
 
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'link', 'value': '"detail":.*?:"(.*?)"' },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'type_v', 'value': '"buildingType":"(.*?)"'},
@@ -82,17 +87,19 @@ class WebCrawler:
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'info', 'value': 'lambda x: ": ".join(x)' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'agent', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
 
-            # { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'link', 'value': '<link rel="canonical" href="https://www.fotocasa.es(.+?)"/>' },
-            # { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'type_v', 'value': '<span class="main-info__title-main">(.+?) en venta en .+?</span>' },
-            # { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'address', 'value': '<span class="main-info__title-main">.+? en venta en (.+?)</span>' },
-            # { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'town', 'value': '<span class="main-info__title-minor">(.+?)</span>' },
-            # { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'price', 'value': '<span class="info-data-price"><span class="txt-bold">(.+?)</span>' },
-            # { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'price_old', 'value': '<span class="pricedown_price">(.+?) €</span>' },
-            # { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'info_sub', 'value': '<section id="details" class="details-box">(.*?)</section>' },
-            # { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'info_elem', 'value': '<li>(.*?)</li>', 'options': 'DOTALL' },
-            # { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'description', 'value': '<div class="adCommentsLanguage.+?><p>(.+?)</p></div>', 'options': 'DOTALL' },
-            # { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'tags', 'value': '<span class="tag ">(.+?)</span>', 'options': 'DOTALL' },
-            # { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'agent', 'value': '<h2 class="aditional-link_title .+? href="(.+?)".+?</a>' },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'link', 'value': None },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'type_v', 'value': None },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'address', 'value': None },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'town', 'value': None },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'price', 'value': None },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'rooms', 'value': None },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'surface', 'value': None },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'price_old', 'value': None },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'info_sub', 'value': None },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'info_elem', 'value': None },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'description', 'value': None },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'tags', 'value': None},
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'agent', 'value': None },
         ]
 
 
@@ -123,16 +130,19 @@ class WebCrawler:
 
     def run_scrap_group(self, group):
 
+        self.logger.info(f"Scraping group: {group}")
         url = self.get_by_name(self.web_specs, group, 'url', 'global', 'base_url')
-        list_items = self.get_dict_rx(self.web_specs, group, 'list')
-        list_next = self.get_dict_rx(self.web_specs, group, 'list')
+        list_items = self.get_dict_rx(self.web_specs, group, 'list_items')
+        list_next = self.get_dict_rx(self.web_specs, group, 'list_next')
         list_fields = self.get_dict_rx(self.web_specs, group, 'list_field')
         detail_fields = self.get_dict_rx(self.web_specs, group, 'detail_field')
         fields_lambda = self.get_dict_lambda(self.web_specs, group, 'list_field')
 
         webScraper = WebScraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda)
-        data = webScraper.scrap_page(open('tests/fotocasa_lista.html', 'r').read().replace("\n", "").replace("\r", ""))
+        # webScraper.scrap()
+        data = webScraper.scrap_page(open(f'tests/{group}_lista.html', 'r').read().replace("\n", "").replace("\r", ""))
         webScraper.store_page_csv(data)
+        del webScraper
 
     def run_crawler(self):
         for group in self.web_specs['group'].unique():
@@ -145,6 +155,6 @@ if __name__ == '__main__':
     if Path('realadvisor.log').exists():
         os.remove('realadvisor.log')
 
-    web_crawler = WebCrawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/idealista_datafile.csv'))
-    web_crawler.run_scrap_group('fotocasa')
+    web_crawler = WebCrawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'))
+    web_crawler.run_crawler()
     
