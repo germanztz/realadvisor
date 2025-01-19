@@ -43,10 +43,6 @@ class TestRealtyReport(unittest.TestCase):
         clean_description = RealtyReport.clean_description(self.sample_data['description'])
         self.assertEqual(clean_description, 'piso en venta en barcelona reformado y con terraza ocupada')
 
-    def test_get_n_hab(self):
-        n_hab = RealtyReport.get_n_hab(self.sample_data['info'])
-        self.assertEqual(n_hab, 3)
-
     def test_to_dict(self):
         realty = RealtyReport(**self.sample_data)
         dict_output = realty.to_dict()
@@ -96,17 +92,6 @@ class TestRealtyReport(unittest.TestCase):
     def test_clean_description(self):
         self.assertEqual(RealtyReport.clean_description("Piso en venta en<br> Barcelona reformado y con terraza ocupada"), "piso en venta en barcelona reformado y con terraza ocupada")
         self.assertEqual(RealtyReport.clean_description(None), "")
-
-    def test_get_n_hab(self):
-        self.assertEqual(RealtyReport.find_min_int(["80 m²", "3 hab."], RealtyReport.RX_HAB), 3)
-        self.assertIsNone(RealtyReport.find_min_int(None, RealtyReport.RX_HAB))
-        self.assertIsNone(RealtyReport.find_min_int("Invalid text", RealtyReport.RX_HAB))
-
-    def test_get_sup_m2(self):
-        self.assertEqual(RealtyReport.find_min_int('["80 m²", "3 hab."]', RealtyReport.RX_M2), 80)
-        self.assertEqual(RealtyReport.find_min_int(['51 m² construidos, 46 m² útiles'], RealtyReport.RX_M2), 46)
-        self.assertIsNone(RealtyReport.find_min_int(None, RealtyReport.RX_M2))
-        self.assertIsNone(RealtyReport.find_min_int("Invalid text", RealtyReport.RX_M2))
 
     def test_get_occupation(self):
         self.assertEqual(RealtyReport.get_occupation("ocupada"), "ocupada")

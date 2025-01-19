@@ -35,7 +35,7 @@ class WebCrawler:
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'link', 'value': '<a href="(/inmueble/\\d+?/)" role="heading" aria-level="2" class="item-link " title=".+? en .+?">' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'type_v', 'value': '<a href=".+?" role="heading" aria-level="2" class="item-link " title="(.+?) en .+?">' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'address', 'value': '<a href=".+?" role="heading" aria-level="2" class="item-link " title=".+? en (.+?)">' },
-            { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'town', 'value': '<a href=".+?" role="heading" aria-level="2" class="item-link " title=".+? en (.+?)">' },
+            { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'town', 'value': None },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'price', 'value': '<span class="item-price.+?>(.+?)<' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'rooms', 'value': '<span class="item-detail">(\\d+) hab.</span>' },
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'surface', 'value': '<span class="item-detail">(\\d+) m²</span>' },
@@ -72,7 +72,7 @@ class WebCrawler:
 
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'link', 'value': '"detail":.*?:"(.*?)"' },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'type_v', 'value': '"buildingType":"(.*?)"'},
-            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'address', 'value': '"neighborhood":"(.*?)"' },
+            { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'address', 'value': '"district":"(.*?)","neighborhood":"(.*?)","zipCode":"(.*?)",.*?"province":"(.*?)"' },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'town', 'value': '"district":"(.*?)"' },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'price', 'value': '"rawPrice":(\\d+),' },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'rooms', 'value': '"key":"rooms","value":(\\d+),' },
@@ -83,9 +83,10 @@ class WebCrawler:
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'tags', 'value': None },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'agent', 'value': '"clientUrl":"(.*?)"' },
 
-            { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_items', 'value': 'lambda m: m.replace("\\\\", "")' },
+            { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_items', 'value': 'lambda m: [e.replace("\\\\", "") for e in m]' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'link', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
-            { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'info', 'value': 'lambda x: ": ".join(x)' },
+            { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'address', 'value': 'lambda m : ", ".join(m)' },
+            { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'info', 'value': 'lambda m: ": ".join(m)' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'agent', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
 
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'link', 'value': None },
@@ -129,7 +130,7 @@ class WebCrawler:
             result[row['name']] = eval(row['value'])
         return result
 
-    def run_scrap_group(self, group):
+    def run_scrap_group(self, group, dry_run=False):
 
         self.logger.info(f"Scraping group: {group}")
         url = self.get_by_name(self.web_specs, group, 'url', 'global', 'base_url')
@@ -139,14 +140,18 @@ class WebCrawler:
         detail_fields = self.get_dict_rx(self.web_specs, group, 'detail_field')
         fields_lambda = self.get_dict_lambda(self.web_specs, group, 'list_field')
 
-        webScraper = WebScraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda)
-        webScraper.scrap()
-        # data = webScraper.scrap_page(open(f'tests/{group}_lista.html', 'r').read().replace("\n", "").replace("\r", ""))
-        # webScraper.store_page_csv(data)
+        if dry_run:
+            webScraper = WebScraper(url, Path(f'tests/{group}_test.log.scv'), list_items, list_fields, list_next, detail_fields, fields_lambda)
+            data = webScraper.scrap_page(open(f'tests/{group}_lista.html', 'r').read().replace("\n", "").replace("\r", ""))
+            print(data)
+            webScraper.store_page_csv(data)
+        else:            
+            webScraper = WebScraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda)
+            webScraper.scrap()
 
-    def run_crawler(self):
+    def run_crawler(self, dry_run=False):
         for group in self.web_specs['group'].unique():
-            self.run_scrap_group(group)
+            self.run_scrap_group(group, dry_run)
 
 if __name__ == '__main__':
 
@@ -155,5 +160,5 @@ if __name__ == '__main__':
     if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
     web_crawler = WebCrawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'))
-    web_crawler.run_crawler()
+    web_crawler.run_crawler(dry_run=True)
     

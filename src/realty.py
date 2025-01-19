@@ -7,6 +7,8 @@ class Realty:
     _created: str = field(default=None, init=False, repr=False)
     _link: str = field(default=None, init=False, repr=False)
     _price: int = field(default=None, init=False, repr=False)
+    _rooms: int = field(default=None, init=False, repr=False)
+    _surface: int = field(default=None, init=False, repr=False)
     _description: str = field(default=None, init=False, repr=False)
     _address: str = field(default=None, init=False, repr=False)
     _town: str = field(default=None, init=False, repr=False)
@@ -14,14 +16,14 @@ class Realty:
     _info: Optional[str] = field(default=None, init=False, repr=False)
     _price_old: Optional[int] = field(default=None, init=False, repr=False)
     _tags: Optional[list[str]] = field(default=None, init=False, repr=False)
-    _agent: Optional[float] = field(default=None, init=False, repr=False)
+    _agent: Optional[str] = field(default=None, init=False, repr=False)
 
 
-    def __init__(self, link: str, type_v: str, address: str, town: str, price: int, info: str, 
+    def __init__(self, link: str, type_v: str, address: str, town: str, price: int, rooms: int, surface: int, info: str, 
                  description: str, price_old: Optional[int] = None, tags: Optional[str] = None, 
                  agent: Optional[float] = None, created: str = None):
         
-        self.__init__({'link': link,'type_v': type_v,'address': address,'town': town,'price': price,
+        self.__init__({'link': link,'type_v': type_v,'address': address,'town': town,'price': price, 'rooms': rooms, 'surface': surface,
             'info': info,'description': description,'price_old': price_old,'tags': tags,
             'agent': agent,'created': created })
 
@@ -70,6 +72,22 @@ class Realty:
     @price.setter
     def price(self, value):
         self._price = int(Realty.parse_price(value)) if Realty.parse_price(value) else None
+
+    @property
+    def rooms(self):
+        return self._rooms
+    
+    @rooms.setter
+    def rooms(self, value):
+        self._rooms = value
+
+    @property
+    def surface(self):
+        return self._surface
+    
+    @surface.setter
+    def surface(self, value):
+        self._surface = value
 
     @property
     def info(self):
@@ -132,6 +150,8 @@ class Realty:
             'address': self._address,
             'town': self._town,
             'price': self._price,
+            'rooms': self._rooms,
+            'surface': self._surface,
             'info': self._info,
             'description': self._description,
             'price_old': self._price_old,
@@ -198,6 +218,8 @@ class Realty:
             'address': 'calle test 123',
             'town': 'Sant Andreu, Barcelona',
             'price': 250000,
+            'rooms': 3,
+            'surface': 80,
             'description': "Piso en venta en<br> Barcelona reformado y con terraza ocupada",
             'created': '2024-03-20 10:00:00',
             'type_v': 'piso',

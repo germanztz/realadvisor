@@ -138,12 +138,12 @@ class WebScraper:
             if 'sub' in field_name and not ret is None:
                 ret = fields_rx[field_name.replace('sub', 'elem')].findall(ret)
             if post_fields_lambda is not None and field_name in post_fields_lambda and ret is not None:
-                # if ret is a list
-                if isinstance(ret, list):
-                    ret = [post_fields_lambda[field_name](r) for r in ret]
-                # if ret is a string
-                elif isinstance(ret, str):
-                    ret = post_fields_lambda[field_name](ret)
+                # # if ret is a list
+                # if isinstance(ret, list):
+                #     ret = [post_fields_lambda[field_name](r) for r in ret]
+                # # if ret is a string
+                # elif isinstance(ret, str):
+                ret = post_fields_lambda[field_name](ret)
                 
 
             self.logger.debug(f'parse_field {field_name}: {ret}')
@@ -361,11 +361,11 @@ if __name__ == '__main__':
         next_page =  { 'next_page': re.compile(r'\\"rel\\":\\"next\\",\\"href\\":\\"(.*?)\\"') }
 
         list_fields = { 
-            'rooms': re.compile(r'"key":"rooms","value":(\d+),', re.DOTALL), 
+            'address': re.compile(r'"district":"(.*?)","neighborhood":"(.*?)","zipCode":"(.*?)",.*?"province":"(.*?)"'), 
         }
         fields_lambda = { 
-            'list_items': lambda m: m.replace('\\', ''),
-            'info': lambda x: ': '.join(x)
+            'list_items': lambda m: [e.replace('\\', '') for e in m],
+            'address': lambda m: ", ".join(m)
         }
 
         webScraper = WebScraper('https://tt.com', None, list_items, list_fields, next_page, None, fields_lambda)

@@ -11,8 +11,6 @@ from realty import Realty
 @dataclass
 class RealtyReport(Realty):
     # Property characteristics (additional to Realty)
-    n_hab: Optional[int] = field(default=None, init=False, repr=False)
-    sup_m2: int = field(default=None, init=False, repr=False)
     disponibilidad: str = field(default=None, init=False, repr=False)
     
     # Location info
@@ -95,8 +93,6 @@ class RealtyReport(Realty):
         "exterior", "comercial"
     ]
 
-    RX_HAB = re.compile(r'(\d+?) hab\.')
-    RX_M2 = re.compile(r'(\d+?) m²')
     RX_BARRIOS = re.compile(r"([^,]+),[^,]+$")
     RX_HTML_TAG = re.compile(r"<.*?>")
 
@@ -121,8 +117,6 @@ class RealtyReport(Realty):
         self._description = RealtyReport.clean_description(self._description)
         self._type_v = RealtyReport.estandarizar(self._type_v)
         self._address = RealtyReport.estandarizar(self._address)
-        self.n_hab = RealtyReport.find_min_int(self._info, RealtyReport.RX_HAB)
-        self.sup_m2 = RealtyReport.find_min_int(self._info, RealtyReport.RX_M2)
 
         self.disponibilidad = RealtyReport.get_occupation(self._description)
         self._tags = RealtyReport.extract_tags(self._description)
@@ -147,6 +141,8 @@ class RealtyReport(Realty):
             'address': self._address,
             'town': self._town,
             'price': self._price,
+            'rooms': self._rooms,
+            'surface': self._surface,
             'info': self._info,
             'description': self._description,
             'price_old': self._price_old,
@@ -155,8 +151,6 @@ class RealtyReport(Realty):
             'created': self._created,
 
             # Property characteristics
-            'n_hab': self.n_hab,
-            'sup_m2': self.sup_m2,
             'disponibilidad': self.disponibilidad,
 
             # Location info
@@ -374,6 +368,8 @@ class RealtyReport(Realty):
             'address': 'calle test 123',
             'town': 'Sant Andreu, Barcelona',
             'price': 250000,
+            'rooms': 3,
+            'surface': 80,
             'description': "Piso en venta en<br> Barcelona reformado y con terraza ocupada",
             'created': '2024-03-20 10:00:00',
             'type_v': 'piso',
@@ -381,8 +377,6 @@ class RealtyReport(Realty):
             'info': "['80 m²', '3 hab.']",
             'tags': 'Reformado, Exterior',
             'agent': None,
-            'n_hab': None,
-            'sup_m2': 94,
             'disponibilidad': 'disponible',
             'barrio': 'la teixonera',
             'barrio_ratio': 1.0,
