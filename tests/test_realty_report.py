@@ -128,8 +128,8 @@ class TestRealtyReport(unittest.TestCase):
 
     def test_get_price_m2(self):
         price = 100000
-        sup_m2 = 80
-        result = RealtyReport.get_price_m2(price, sup_m2)
+        surface = 80
+        result = RealtyReport.get_price_m2(price, surface)
         self.assertEqual(result, 1250)
 
     def test_get_price_desv_media(self):
@@ -145,14 +145,14 @@ class TestRealtyReport(unittest.TestCase):
 
     def test_get_price_alquiler_estimado(self):
         precio_alquiler_1y = 14.53
-        sup_m2 = 100
-        result = RealtyReport.get_price_alquiler_estimado(precio_alquiler_1y, sup_m2)
+        surface = 100
+        result = RealtyReport.get_price_alquiler_estimado(precio_alquiler_1y, surface)
         self.assertEqual(result, 1453)
 
     def test_get_price_venta_estimado(self):
         precio_venta_1y = 2619.8571
-        sup_m2 = 456
-        result = RealtyReport.get_price_venta_estimado(precio_venta_1y, sup_m2)
+        surface = 456
+        result = RealtyReport.get_price_venta_estimado(precio_venta_1y, surface)
         self.assertEqual(result, 1194654)
 
     def test_get_global_score_stars(self):

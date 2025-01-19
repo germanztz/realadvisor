@@ -126,11 +126,11 @@ class RealtyReport(Realty):
             if getattr(self, key, None) is None:
                 setattr(self, key, value)
 
-        self.precio_m2 = RealtyReport.get_price_m2(self._price, self.sup_m2)
+        self.precio_m2 = RealtyReport.get_price_m2(self._price, self.surface)
         self.precio_desv_media = RealtyReport.get_price_desv_media(self.precio_m2, self.precio_venta_1y)
         self.precio_venta_stars = RealtyReport.get_price_stars(self.precio_desv_media)
-        self.precio_alquiler_estimado = RealtyReport.get_price_alquiler_estimado(self.precio_alquiler_1y, self.sup_m2)
-        self.precio_venta_estimado = RealtyReport.get_price_venta_estimado(self.precio_venta_1y, self.sup_m2)
+        self.precio_alquiler_estimado = RealtyReport.get_price_alquiler_estimado(self.precio_alquiler_1y, self.surface)
+        self.precio_venta_estimado = RealtyReport.get_price_venta_estimado(self.precio_venta_1y, self.surface)
         self.global_score_stars = RealtyReport.get_global_score_stars(self.precio_venta_stars, self.rentabilidad_10y_stars, self.grow_acu_venta_10y_stars, self.grow_acu_alquiler_10y_stars, self.disponibilidad)
 
     def to_dict(self):
@@ -305,12 +305,11 @@ class RealtyReport(Realty):
         return None
     
     @staticmethod
-    def get_price_m2(price, sup_m2) -> Optional[int]:
-        # Handle None values
-        if price is None or sup_m2 is None or sup_m2 == 0:
+    def get_price_m2(price, surface) -> Optional[int]:
+        try:
+            return int(price / surface)
+        except Exception as e:
             return None
-        
-        return int(price / sup_m2)
     
     @staticmethod
     def get_price_desv_media(price_m2, price_venta_1y) -> Optional[float]:
@@ -333,20 +332,19 @@ class RealtyReport(Realty):
         return 1
     
     @staticmethod
-    def get_price_alquiler_estimado(precio_alquiler_1y, sup_m2) -> Optional[int]:
-        # Handle None values
-        if precio_alquiler_1y is None or sup_m2 is None:
+    def get_price_alquiler_estimado(precio_alquiler_1y, surface) -> Optional[int]:
+        try:
+            return int(precio_alquiler_1y * surface)
+        except Exception as e:
             return None
-        
-        return int(precio_alquiler_1y * sup_m2)
-    
+
     @staticmethod
-    def get_price_venta_estimado(precio_venta_1y, sup_m2) -> Optional[int]:
+    def get_price_venta_estimado(precio_venta_1y, surface) -> Optional[int]:
         # Handle None values
-        if precio_venta_1y is None or sup_m2 is None:
+        try:
+            return int(precio_venta_1y * surface)
+        except Exception as e:
             return None
-        
-        return int(precio_venta_1y * sup_m2)
 
     @staticmethod
     def get_global_score_stars(precio_venta_stars, rentabilidad_10y_stars, grow_acu_venta_10y_stars, grow_acu_alquiler_10y_stars, disponibilidad) -> Optional[float]:

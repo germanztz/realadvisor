@@ -143,12 +143,12 @@
             <h3>Información Básica</h3>
             <ul>
                 <li><strong>Precio:</strong> {{ price }} €</li>
-                <li><strong>Metros cuadrados:</strong> {{ sup_m2 }} m²</li>
+                <li><strong>Metros cuadrados:</strong> {{ surface }} m²</li>
                 <li><strong>Precio por m²:</strong> {{ precio_m2 }} €/m² ({{ stars_to_emoji_string }}) 
-                    ya que es un {{ (precio_desv_media * 100) }}% del precio medio de venta de {{ barrio }}: {{ precio_venta_1y }} €/m²</li>
+                    ya que es un {{ (precio_desv_media) }} del precio medio de venta de {{ barrio }}: {{ precio_venta_1y }} €/m²</li>
                 <li><strong>Alquiler estimado:</strong> {{ precio_alquiler_estimado }} €/mes</li>
                 <li><strong>Venta estimada:</strong> {{ precio_venta_estimado }} €</li>
-                <li><strong>Habitaciones:</strong> {{ n_hab }}</li>
+                <li><strong>Habitaciones:</strong> {{ rooms }}</li>
                 <li><strong>Descripción:</strong> <pre>{{ description }}</pre></li>
                 <li><strong>Tags:</strong> {{ tags_to_emoji_string }}</li>
                 <li><strong>Barrio:</strong> {{ barrio }}</li>

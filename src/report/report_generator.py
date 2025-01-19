@@ -23,20 +23,21 @@ class ReportGenerator:
     
     CACHE_DIR = 'plot_cache'
 
-    def __init__(self, datasets_path: str = 'datasets', template_path: str = 'report_template.html', output_dir: str = 'reports'):
+    def __init__(self, template_path: Path = Path('src/report/report_template3.html'), output_dir: Path = Path('reports/'),
+                 precios_path: Path = Path('datasets/gen_precios.csv'), indicadores_path: Path = Path('datasets/gen_indicadores.csv'),
+                 informe_path: Path = Path('datasets/gen_informe.csv')):
 
         logging.config.fileConfig('logging.conf')
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info(f'Init {self.__class__.__name__}')
 
-        # Get the directory where this script is located
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.template_path = template_path
         # Initialize Jinja environment with the correct template directory
-        self.env = Environment(loader=FileSystemLoader(current_dir))
-        self.template = self.env.get_template(template_path)
-        self.precios_path = os.path.join(datasets_path, 'gen_precios.csv')
-        self.indicadores_path = os.path.join(datasets_path, 'gen_indicadores.csv')
-        self.informe_path = os.path.join(datasets_path, 'gen_informe.csv')
+        self.env = Environment(loader=FileSystemLoader(self.template_path.parent))
+        self.template = self.env.get_template(self.template_path.name)
+        self.precios_path = precios_path
+        self.indicadores_path = indicadores_path
+        self.informe_path = informe_path
 
         self.output_dir = output_dir 
         # Create output directory if it doesn't exist
@@ -94,12 +95,11 @@ class ReportGenerator:
             
         return html_path, pdf_path
 
-    def generate_report(self, realty: Realty, template_path: str = 'report_template3.html'):
+    def generate_report(self, realty: Realty):
         realty_report = RealtyReport(**realty.to_dict())
         self.load_indicators(realty_report)
-        template = self.env.get_template(template_path)
         # get extension of the template file
-        template_extension = Path(template_path).suffix
+        template_extension = self.template_path.suffix
 
         base_filename = f"property_report_{realty_report.barrio}"
         html_path = os.path.join(self.output_dir, f"{base_filename}{template_extension}")
@@ -115,7 +115,7 @@ class ReportGenerator:
         grafico2_base64 = ReportGenerator.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
         df = bcn_precios[bcn_precios['id'] == 80000]
         grafico3_base64 = ReportGenerator.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
-        grafico4_base64 = ReportGenerator.plot_cuadro_rentabilidad(
+        grafico4_base64 = self.plot_cuadro_rentabilidad(
             inversion_precio=realty_report.price, 
             gastos_gestion=5000, 
             gastos_reforma=5000, 
@@ -123,7 +123,7 @@ class ReportGenerator:
             retorno_bruto_mensual=realty_report.precio_alquiler_estimado, 
             title="Rentabilidad estimada a 5 años")
 
-        html_content = template.render(
+        html_content = self.template.render(
             **realty_report.to_dict(),
             logo_base64=logo_base64,
             stars_to_emoji_string=self.stars_to_emoji(realty_report.global_score_stars),
@@ -272,62 +272,64 @@ class ReportGenerator:
         plt.savefig(plot_path)
         return plot_path
 
-    @staticmethod
-    def plot_cuadro_rentabilidad(inversion_precio=90000, gastos_gestion=5000, gastos_reforma=5000, anos_vista=5, retorno_bruto_mensual=700, title="Cuadro de Rentabilidad"):
-        plot_path = os.path.join(ReportGenerator.CACHE_DIR, f"{title}.png")
-        # if os.path.exists(plot_path):
-        #     return plot_path
+    def plot_cuadro_rentabilidad(self, inversion_precio=90000, gastos_gestion=5000, gastos_reforma=5000, anos_vista=5, retorno_bruto_mensual=700, title="Cuadro de Rentabilidad"):
+        plot_path = None
+        try:
+            plot_path = os.path.join(ReportGenerator.CACHE_DIR, f"{title}.png")
+            # if os.path.exists(plot_path):
+            #     return plot_path
+            # Calculamos la inversión total inicial
+            inversion_total = inversion_precio + gastos_gestion + gastos_reforma
+            
+            # Calculamos el retorno bruto anual
+            retorno_bruto_anual = retorno_bruto_mensual * 12
+            
+            # Calculamos el retorno neto anual (suponiendo que no hay otros gastos operativos)
+            retorno_neto_anual = retorno_bruto_anual
 
-        # Calculamos la inversión total inicial
-        inversion_total = inversion_precio + gastos_gestion + gastos_reforma
-        
-        # Calculamos el retorno bruto anual
-        retorno_bruto_anual = retorno_bruto_mensual * 12
-        
-        # Calculamos el retorno neto anual (suponiendo que no hay otros gastos operativos)
-        retorno_neto_anual = retorno_bruto_anual
+            # Generamos las etiquetas de los trimestres
+            trimestres = []
+            for ano in range(1, anos_vista + 1):
+                for trimestre in range(1, 5):
+                    trimestres.append(f'{2025 + ano - 1}Q{trimestre}')
+            
+            # Creamos el cuadro de rentabilidad por trimestre
+            cuadro = []
+            for i, trimestre in enumerate(trimestres):
+                retorno_acumulado = retorno_neto_anual * ((i + 1) / 4)
+                rentabilidad = (retorno_acumulado / inversion_total) * 100
+                cuadro.append({
+                    'Trimestre': trimestre,
+                    'Retorno Acumulado': retorno_acumulado,
+                    'Rentabilidad (%)': rentabilidad
+                })
+            
+            # Convertimos el cuadro a un DataFrame de pandas
+            df = pd.DataFrame(cuadro)
+            
+            # Graficamos los datos usando seaborn
+            sns.set(style="whitegrid")
+            fig, ax1 = plt.subplots(figsize=(16, 6))
+            
+            color = 'tab:blue'
+            ax1.set_xlabel('Trimestre')
+            ax1.set_ylabel('Retorno Acumulado', color=color)
+            sns.lineplot(x='Trimestre', y='Retorno Acumulado', data=df, ax=ax1, color=color, marker="o")
+            ax1.tick_params(axis='y', labelcolor=color)
+            ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, horizontalalignment='right')
 
-        # Generamos las etiquetas de los trimestres
-        trimestres = []
-        for ano in range(1, anos_vista + 1):
-            for trimestre in range(1, 5):
-                trimestres.append(f'{2025 + ano - 1}Q{trimestre}')
-        
-        # Creamos el cuadro de rentabilidad por trimestre
-        cuadro = []
-        for i, trimestre in enumerate(trimestres):
-            retorno_acumulado = retorno_neto_anual * ((i + 1) / 4)
-            rentabilidad = (retorno_acumulado / inversion_total) * 100
-            cuadro.append({
-                'Trimestre': trimestre,
-                'Retorno Acumulado': retorno_acumulado,
-                'Rentabilidad (%)': rentabilidad
-            })
-        
-        # Convertimos el cuadro a un DataFrame de pandas
-        df = pd.DataFrame(cuadro)
-        
-        # Graficamos los datos usando seaborn
-        sns.set(style="whitegrid")
-        fig, ax1 = plt.subplots(figsize=(16, 6))
-        
-        color = 'tab:blue'
-        ax1.set_xlabel('Trimestre')
-        ax1.set_ylabel('Retorno Acumulado', color=color)
-        sns.lineplot(x='Trimestre', y='Retorno Acumulado', data=df, ax=ax1, color=color, marker="o")
-        ax1.tick_params(axis='y', labelcolor=color)
-        ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, horizontalalignment='right')
+            ax2 = ax1.twinx()  # Instanciamos un segundo eje que comparte el mismo eje x
+            color = 'tab:green'
+            ax2.set_ylabel('Rentabilidad (%)', color=color)
+            sns.lineplot(x='Trimestre', y='Rentabilidad (%)', data=df, ax=ax2, color=color, marker="o")
+            ax2.tick_params(axis='y', labelcolor=color)
 
-        ax2 = ax1.twinx()  # Instanciamos un segundo eje que comparte el mismo eje x
-        color = 'tab:green'
-        ax2.set_ylabel('Rentabilidad (%)', color=color)
-        sns.lineplot(x='Trimestre', y='Rentabilidad (%)', data=df, ax=ax2, color=color, marker="o")
-        ax2.tick_params(axis='y', labelcolor=color)
+            fig.tight_layout()  # Para ajustar bien el layout
+            plt.title(title)
 
-        fig.tight_layout()  # Para ajustar bien el layout
-        plt.title(title)
-
-        plt.savefig(plot_path)
+            plt.savefig(plot_path)
+        except Exception as e:
+            self.logger.error(e)
         return plot_path
     
     @staticmethod
@@ -347,4 +349,3 @@ if __name__ == "__main__":
     data = {'created': '2025-01-06 11:44:38', 'link': 'https://www.idealista.com/inmueble/106576974/', 'type_v': 'Estudio', 'address': 'Les Roquetes', 'town': 'Nou Barris, Barcelona', 'price': '33.000', 'price_old': None, 'info': ['51 m² construidos, 46 m² útiles', 'Sin habitación', '2 baños', 'Segunda mano/buen estado', 'Orientación norte, este', 'Construido en 1968', 'No dispone de calefacción', 'Bajo exterior', 'Sin ascensor', '<span>Consumo: </span><span class="icon-energy-c-e">411 kWh/m² año</span>', '<span>Emisiones: </span><span class="icon-energy-c-e"></span>'], 'description': "Tecnocasa Estudi Mina de la Ciutat S. L tiene el placer de presentarles este inmueble el cual tenemos en exclusiva:<br/><br/>DOS ESTUDIOS POR 33.000 CADA UNO, dispone de 51m&sup2; de construcci&oacute;n, distribuidos cada uno de ellos de la siguiente manera: Un espacio di&aacute;fano tipo loft donde se puede hacer la cocina americana con sal&oacute;n comedor, un espaci&oacute; para descansar y un cuarto de ba&ntilde;o, Los locales se venden juntos y se encuentran ubicados en una de las calles principales del barrio, haciendo que los mismos se encuentre muy cerca de todos los servicios b&aacute;sicos, calles peatonales, se encuentra en una zona inmejorable en cuanto a comunicaciones, metro (L3), parada de Bus TMB V29, 11, 27, 127. NO DISPONEN DE CEDULA DE HABITABILIDAD.<br/><br/>Informaci&oacute;n al consumidor: Le informamos que el precio de venta ofertado no incluye los gastos de compraventa (notar&iacute;a, registro, gestor&iacute;a, inmobiliaria, impuestos estatales ITP y tasas y gastos bancarios). Si desea visitar este inmueble, cualquiera de nuestros agentes le informar&aacute; detalladamente de estos gastos antes de visitarlo.<br/><br/>La red Kiron del Grupo Tecnocasa te ayudar&aacute; a buscar la financiaci&oacute;n que mejor se adapte a tus necesidades. Son expertos en el sector financiero y est&aacute;n a tu disposici&oacute;n para que elijas la hipoteca que mejor se adapte a ti. Hasta un 100%.<br/><br/>Tecnocasa Estudi Mina de la Ciutat S. L t&eacute; el plaer de presentar-vos aquest immoble el qual tenim en exclusiva:<br/><br/>DOS ESTUDIS PER 33.000 CADASCUN, disposa de 51m&sup2; de construcci&oacute;, distribu&iuml;ts cadascun d'ells de la seg&uuml;ent manera: Un espai di&agrave;fan tipus loft on es pot fer la cuina americana amb sal&oacute; menjador, un espai per descansar i una cambra de bany, Els locals es venen junts i es troben ubicats en un dels carrers principals del barri, fent que aquests es trobi molt a prop de tots els serveis b&agrave;sics, carrers de vianants, es troba en una zona immillorable quant a comunicacions, metro (L3), parada de Bus TMB V29, 11, 27, 127. NO DISPOSEN DE CEDULA D'HABITABILITAT.<br/><br/>Informaci&oacute; al consumidor: Us informem que el preu de venda oferit no inclou les despeses de compravenda (notaria, registre, gestoria, inmobiliaria, impostos estatals ITP i taxes i despeses banc&agrave;ries). Si voleu visitar aquest immoble, qualsevol dels nostres agents us informar&agrave; detalladament d'aquestes despeses abans de visitar-lo.<br/><br/>La xarxa Kiron del Grup Tecnocasa us ajudar&agrave; a buscar el finan&ccedil;ament que millor s'adapti a les vostres necessitats. S&oacute;n experts en el sector financer i estan a la teva disposici&oacute; perqu&egrave; tri&iuml;s la hipoteca que s'adapti millor a tu. Fins a un 100%.", 'tags': None, 'agent': None}
     realty = Realty(**data)
     html = report_generator.generate_report(realty)
-    print(f"Generated reports:")

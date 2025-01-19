@@ -1,14 +1,42 @@
 import logging.config
 import asyncio
-from src.crawler.web_crawler import WebCrawler
+import yaml
+from pathlib import Path
+import sys
+sys.path.append('src')
+sys.path.append('src/crawler')
+sys.path.append('src/report')
+from web_crawler import WebCrawler
+from report_generator import ReportGenerator
+
 
 class Daemon:
-    def __init__(self, webs_specs_datafile_path: Path = Path('datasets/webs_specs.csv'), realty_datafile_path: Path = Path('datasets/realties.csv'), template_path: Path = Path('report_template.html'), output_dir: Path = Path('reports')):
+    def __init__(self, config_file_path: str = 'realadvisor_conf.yaml'):
         self.logger = logging.getLogger(__name__)
-        self.crawler = WebCrawler(webs_specs_datafile_path=webs_specs_datafile_path, realty_datafile_path=realty_datafile_path)
-        self.report_generator = ReportGenerator(template_path=template_path, output_dir=output_dir)
+
+        with open('realadvisor_conf.yaml', 'r') as f:
+            conf = yaml.safe_load(f)
+
+            self.webs_specs_datafile_path = conf['crawler']['webs_specs_datafile_path']
+            self.realty_datafile_path = conf['crawler']['realty_datafile_path']
+
+            self.template_path = conf['report_generator']['template_path']
+            self.output_dir = conf['report_generator']['output_dir']
+
+        self.crawler = WebCrawler(self.webs_specs_datafile_path, self.realty_datafile_path)
+        self.report_generator = ReportGenerator(self.template_path, self.output_dir)
 
 
     async def run(self):
-        await self.crawler.run_crawler()
-        await self.report_generator.run()
+        # await self.crawler.run()
+        # await self.report_generator.run()
+        print(self.webs_specs_datafile_path)
+
+if __name__ == '__main__':
+
+    # delete logfile
+    import os
+    if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
+
+    daemon = Daemon()
+    asyncio.run(daemon.run())

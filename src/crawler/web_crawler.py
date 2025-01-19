@@ -149,7 +149,7 @@ class WebCrawler:
             webScraper = WebScraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda)
             webScraper.scrap()
 
-    def run_crawler(self, dry_run=False):
+    def run(self, dry_run=False):
         for group in self.web_specs['group'].unique():
             self.run_scrap_group(group, dry_run)
 
@@ -160,5 +160,5 @@ if __name__ == '__main__':
     if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
     web_crawler = WebCrawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'))
-    web_crawler.run_crawler(dry_run=True)
+    web_crawler.run(dry_run=True)
     

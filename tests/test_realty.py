@@ -53,9 +53,9 @@ class TestRealty(unittest.TestCase):
     #     clean_description = Realty.clean_description(self.sample_data['description'])
     #     self.assertEqual(clean_description, 'piso en venta en barcelona reformado y con terraza ocupada')
 
-    # def test_get_n_hab(self):
-    #     n_hab = Realty.get_n_hab(self.sample_data['info'])
-    #     self.assertEqual(n_hab, 3)
+    # def test_get_rooms(self):
+    #     rooms = Realty.get_rooms(self.sample_data['info'])
+    #     self.assertEqual(rooms, 3)
 
     def test_to_dict(self):
         realty = Realty(**Realty.get_sample_data())

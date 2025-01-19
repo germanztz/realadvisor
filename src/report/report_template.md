@@ -12,11 +12,11 @@
 ### Información Básica
 
 - **precio:** {{ price }} €
-- **metros cuadrados:** {{ sup_m2 }} m2
+- **metros cuadrados:** {{ surface }} m2
 - **precio_m2:** {{ precio_m2 }} €/m2 ({{ stars_to_emoji_string }}) ya que es un {{ (precio_desv_media * 100) }}% del precio medio de venta de {{ barrio }} : {{ precio_venta_1y }} €/m2
 - **alquiler estimado:** {{ precio_alquiler_estimado }} €/mes
 - **venta estimada:** {{ precio_venta_estimado }} €
-- **habitaciones:** {{ n_hab }}
+- **habitaciones:** {{ rooms }}
 - **descripcion:** ```{{ description }}```
 - **tags:** {{ tags_to_emoji_string }}
 - **barrio:** {{ barrio }}
