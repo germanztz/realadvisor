@@ -6,31 +6,33 @@ import sys
 sys.path.append('src')
 sys.path.append('src/crawler')
 sys.path.append('src/report')
-from web_crawler import WebCrawler
-from report_generator import ReportGenerator
+from crawler import Crawler
+from reporter import Reporter
 
 
 class Daemon:
     def __init__(self, config_file_path: str = 'realadvisor_conf.yaml'):
-        self.logger = logging.getLogger(__name__)
 
-        with open('realadvisor_conf.yaml', 'r') as f:
+        with open(config_file_path, 'r') as f:
             conf = yaml.safe_load(f)
+            # logging.config.dictConfig(conf['logging'])
+            self.logger = logging.getLogger(self.__class__.__name__)
 
-            self.webs_specs_datafile_path = conf['crawler']['webs_specs_datafile_path']
-            self.realty_datafile_path = conf['crawler']['realty_datafile_path']
+            self.webs_specs_datafile_path = Path(conf['crawler']['webs_specs_datafile_path']) 
+            self.realty_datafile_path = Path(conf['crawler']['realty_datafile_path'])
 
-            self.template_path = conf['report_generator']['template_path']
-            self.output_dir = conf['report_generator']['output_dir']
+            self.template_path = Path(conf['reporter']['template_path'])
+            self.output_dir = Path(conf['reporter']['output_dir'])
+            self.precios_path = Path(conf['reporter']['precios_path'])
+            self.indicadores_path = Path(conf['reporter']['indicadores_path'])
+            self.reports_path = Path(conf['reporter']['reports_path'])
 
-        self.crawler = WebCrawler(self.webs_specs_datafile_path, self.realty_datafile_path)
-        self.report_generator = ReportGenerator(self.template_path, self.output_dir)
-
+        self.crawler = Crawler(self.webs_specs_datafile_path, self.realty_datafile_path)
+        self.reporter = Reporter(self.template_path, self.output_dir, self.precios_path, self.indicadores_path, self.reports_path)
 
     async def run(self):
-        # await self.crawler.run()
-        # await self.report_generator.run()
-        print(self.webs_specs_datafile_path)
+        self.crawler.run(dry_run=True)
+        self.reporter.run()
 
 if __name__ == '__main__':
 

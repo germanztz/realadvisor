@@ -7,10 +7,10 @@ import warnings
 warnings.filterwarnings('ignore', category=SyntaxWarning)
 import sys
 sys.path.append('src/crawler')
-from web_scraper import WebScraper
+from scraper import Scraper
 
 
-class WebCrawler:
+class Crawler:
 
     def __init__(self, webs_specs_datafile_path:Path = Path('webs_specs.csv'), realty_datafile_path: Path = Path('realties.csv')):
 
@@ -21,7 +21,7 @@ class WebCrawler:
         self.webs_specs_datafile_path = webs_specs_datafile_path
         self.realty_datafile_path = realty_datafile_path
         # self.web_specs = pd.read_csv(self.webs_specs_datafile_path)
-        self.web_specs = WebCrawler.init_datafile(webs_specs_datafile_path)
+        self.web_specs = Crawler.init_datafile(webs_specs_datafile_path)
 
     @staticmethod
     def init_datafile(webs_specs_datafile_path = 'datasets/webs_specs.csv'):
@@ -104,7 +104,6 @@ class WebCrawler:
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'agent', 'value': None },
         ]
 
-
         web_specs = pd.DataFrame(idealista)
         web_specs.to_csv(webs_specs_datafile_path, index=False)
 
@@ -141,13 +140,12 @@ class WebCrawler:
         fields_lambda = self.get_dict_lambda(self.web_specs, group, 'list_field')
 
         if dry_run:
-            webScraper = WebScraper(url, Path(f'tests/{group}_test.log.scv'), list_items, list_fields, list_next, detail_fields, fields_lambda)
-            data = webScraper.scrap_page(open(f'tests/{group}_lista.html', 'r').read().replace("\n", "").replace("\r", ""))
-            print(data)
-            webScraper.store_page_csv(data)
+            scraper = Scraper(url, Path(f'tests/{group}_test.csv'), list_items, list_fields, list_next, detail_fields, fields_lambda)
+            data = scraper.scrap_page(open(f'tests/{group}_lista.html', 'r').read().replace("\n", "").replace("\r", ""))
+            scraper.store_page_csv(data)
         else:            
-            webScraper = WebScraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda)
-            webScraper.scrap()
+            scraper = Scraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda)
+            scraper.scrap()
 
     def run(self, dry_run=False):
         for group in self.web_specs['group'].unique():
@@ -159,6 +157,6 @@ if __name__ == '__main__':
     import os
     if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
-    web_crawler = WebCrawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'))
-    web_crawler.run(dry_run=True)
+    crawler = Crawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'))
+    crawler.run(dry_run=True)
     

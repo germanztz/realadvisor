@@ -2,10 +2,10 @@ import unittest
 import sys
 import re
 sys.path.append('src/crawler')
-from web_scraper import WebScraper
+from scraper import Scraper
 from pathlib import Path
 
-class TestWebScraper(unittest.TestCase):
+class TestScraper(unittest.TestCase):
 
     def setUp(self):
         self.list_items_rx = {'list_items_rx':re.compile(r'<article class="item(.+?)</article>', re.DOTALL)}
@@ -44,25 +44,25 @@ class TestWebScraper(unittest.TestCase):
             'agent': re.compile(r'<h2 class="aditional-link_title .+? href="(.+?)".+?</a>'),
         }
 
-        self.url = 'https://www.TestWebScraper.local'
+        self.url = 'https://www.TestScraper.local'
         self.datafile = Path(__file__+'_datafile.csv')
         
         self.post_fields_lambda = {
-            'link': lambda m: f"https://www.TestWebScraper.local{m}" if isinstance(m, str) else m,
+            'link': lambda m: f"https://www.TestScraper.local{m}" if isinstance(m, str) else m,
             # 'info_sub': lambda m: ','.join(m) if isinstance(m, list) else m,
             'description': lambda m: re.sub(r"<.*?>", " ", m) if isinstance(m, str) else m
         }
 
     def test_parse_list(self):
-        webScraper = WebScraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx, self.post_fields_lambda)
-        alist = webScraper.parse_list(open('tests/idealista_lista.html', 'r').read().replace("\n", "").replace("\r", ""), self.list_items_rx, self.list_item_fields_rx, self.post_fields_lambda)
+        scraper = Scraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx, self.post_fields_lambda)
+        alist = scraper.parse_list(open('tests/idealista_lista.html', 'r').read().replace("\n", "").replace("\r", ""), self.list_items_rx, self.list_item_fields_rx, self.post_fields_lambda)
         print(alist)
         self.assertEqual(len(alist), 30)
 
     def test_parse_item(self):
-        webScraper = WebScraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx, self.post_fields_lambda)
-        anitem = webScraper.parse_item(open('tests/idealista_detalle.html', 'r').read().replace("\n", "").replace("\r", ""), self.detail_item_fields_rx, self.post_fields_lambda)
-        self.assertEqual(anitem['link'], 'https://www.TestWebScraper.local/inmueble/105043094/')
+        scraper = Scraper(self.url, self.datafile, self.list_items_rx, self.list_item_fields_rx, self.list_next_rx, self.detail_item_fields_rx, self.post_fields_lambda)
+        anitem = scraper.parse_item(open('tests/idealista_detalle.html', 'r').read().replace("\n", "").replace("\r", ""), self.detail_item_fields_rx, self.post_fields_lambda)
+        self.assertEqual(anitem['link'], 'https://www.TestScraper.local/inmueble/105043094/')
         self.assertEqual(anitem['type_v'], 'Piso')
         self.assertEqual(anitem['address'], 'paseo de Gràcia')
         self.assertEqual(anitem['town'], "La Dreta de l'Eixample, Barcelona")

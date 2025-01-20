@@ -12,7 +12,7 @@ import warnings
 import logging
 import logging.config
 
-class WebScraper:
+class Scraper:
 
     # TODO: Implementar la rotación de User-Agent
     # TODO: Implementar el scrapping de un array de URLs
@@ -87,7 +87,7 @@ class WebScraper:
 
     def set_url(self, url):
         """
-        Sets a new URL for the WebScraper instance.
+        Sets a new URL for the Scraper instance.
 
         Args:
             url (str): The new URL to be set for the scraper.
@@ -149,7 +149,7 @@ class WebScraper:
             self.logger.debug(f'parse_field {field_name}: {ret}')
             return ret
         except Exception as e:
-            self.logger.error(e)
+            self.logger.error(e, exc_info=True)
             self.logger.error(field_name, regex)
             return None
 
@@ -368,10 +368,10 @@ if __name__ == '__main__':
             'address': lambda m: ", ".join(m)
         }
 
-        webScraper = WebScraper('https://tt.com', None, list_items, list_fields, next_page, None, fields_lambda)
-        curr_page = webScraper.scrap_page(content)
-        hay_repetidos = webScraper.store_page_csv(curr_page)
-        webScraper.paginate(content, hay_repetidos)
+        scraper = Scraper('https://tt.com', None, list_items, list_fields, next_page, None, fields_lambda)
+        curr_page = scraper.scrap_page(content)
+        hay_repetidos = scraper.store_page_csv(curr_page)
+        scraper.paginate(content, hay_repetidos)
         print(curr_page)
     # [{"key":"air_conditioner","value":1,"maxValue":0,"minValue":0},{"key":"ceramic_stoneware","value":6,"maxValue":0,"minValue":0},{"key":"alarm","value":77,"maxValue":0,"minValue":0},{"key":"not_furnished","value":130,"maxValue":0,"minValue":0},{"key":"antiquity","value":7,"maxValue":0,"minValue":0},{"key":"bathrooms","value":2,"maxValue":0,"minValue":0},{"key":"conservationStatus","value":4,"maxValue":0,"minValue":0},{"key":"floor","value":3,"maxValue":0,"minValue":0},{"key":"rooms","value":2,"maxValue":0,"minValue":0},{"key":"surface","value":50,"maxValue":0,"minValue":0}]
 
