@@ -42,7 +42,7 @@ def generate_report(url):
 
     realty = Realty(**data)
     reporter = Reporter()
-    realty_report = reporter.compute_report(realty)
+    realty_report = reporter.compute_reports(realty)
     content = reporter.render_report_content(realty_report)
     return content
 

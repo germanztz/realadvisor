@@ -8,6 +8,7 @@ sys.path.append('src/crawler')
 sys.path.append('src/report')
 from crawler import Crawler
 from reporter import Reporter
+from realty import Realty
 
 
 class Daemon:
@@ -31,8 +32,9 @@ class Daemon:
         self.reporter = Reporter(self.template_path, self.output_dir, self.precios_path, self.indicadores_path, self.reports_path)
 
     async def run(self):
-        self.crawler.run(dry_run=True)
-        self.reporter.run()
+        realties = self.crawler.run(dry_run=True)
+        realties = [Realty(**e.to_dict()) for i, e in realties.iterrows()]
+        self.reporter.run_on(realties, top_n=10, top_field='global_score_stars')()
 
 if __name__ == '__main__':
 

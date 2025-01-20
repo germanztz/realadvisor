@@ -30,7 +30,7 @@ class Realty:
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        if self._town != self._address:
+        if self._town != self._address and self._address and self._town:
             self._address = self._address + ', ' + self._town
 
     @property

@@ -277,8 +277,9 @@ class RealtyReport(Realty):
 
         matches = []
         for a in self.address.split(',') + self.town.split(','):
-            matches.append(RealtyReport.map_place(a.strip(), places))
-        
+            match = RealtyReport.map_place(a.strip(), places)
+            if match is not None:
+                matches.append(match)
         # sort matches by 3 element
         matches = sorted(matches, key=lambda x: x[2])
         # get first non none match

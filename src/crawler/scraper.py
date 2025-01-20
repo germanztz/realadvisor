@@ -61,10 +61,10 @@ class Scraper:
         # headers = {"User-Agent": ua.random}
 
         # list_columns = [f.replace('_sub', '') for f in self.list_items_fields.keys() if 'elem' not in f]
-        self.data = None
+        self.last_scaped_df = None
+        self.main_data_df = None
         if self.datafile_path and self.datafile_path.exists():
-            self.data = pd.read_csv(self.datafile_path)
-
+            self.main_data_df = pd.read_csv(self.datafile_path)
 
     def init_headers(self, url):
         self.set_url(url)
@@ -228,18 +228,15 @@ class Scraper:
         start = time.perf_counter()
 
         self.logger.info(f'Procesando: {self.url}')
-
         response = self.get_response(self.url)
 
         # Verificar si la solicitud fue exitosa
         if response.status_code == 200:
-
             content = self.get_content(response)
             curr_page = self.scrap_page(content)
             hay_repetidos = self.store_page_csv(curr_page)
             self.logger.info(f'Tiempo transcurrido: {time.perf_counter() - start}')
             self.paginate(content, hay_repetidos)
-
         else:
             self.logger.error(f"Error al enviar la solicitud: {response.status_code}: {response.reason}")
 
@@ -255,13 +252,14 @@ class Scraper:
 
         hay_repetidos = False
         curr_page_df = pd.DataFrame(curr_page)
-        if (self.data is not None):
-            repetidos = curr_page_df['link'].isin(self.data['link'])
+        self.last_scaped_df= pd.concat([self.last_scaped_df, curr_page_df], ignore_index=True)
+        if (self.main_data_df is not None):
+            repetidos = curr_page_df['link'].isin(self.main_data_df['link'])
             hay_repetidos = repetidos.any()
             curr_page_df = curr_page_df[~repetidos]
-        self.data = pd.concat([self.data, curr_page_df], ignore_index=True)
+        self.main_data_df = pd.concat([self.main_data_df, curr_page_df], ignore_index=True)
         self.logger.info(f"Elementos añadidos a la bbdd: {len(curr_page_df)}")
-        self.data.to_csv(self.datafile_path, index=False)
+        self.main_data_df.to_csv(self.datafile_path, index=False)
         return hay_repetidos
 
     def paginate(self, content, hay_repetidos):
@@ -288,6 +286,9 @@ class Scraper:
             self.logger.error(f"Error al enviar la solicitud: {response.status_code}: {response.reason}")
             return None
 
+    def get_scraped_items(self):
+        return self.last_scaped_df
+        
     @staticmethod
     def scrap_ollama():
 

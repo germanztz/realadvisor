@@ -38,32 +38,35 @@ class Reporter:
         self.precios_path = precios_path
         self.indicadores_path = indicadores_path
         self.reports_path = reports_path
-
         self.output_dir = output_dir 
         # Create output directory if it doesn't exist
         # os.makedirs(output_dir, exist_ok=True)
         os.chmod(output_dir, 0o777)
 
-    def compute_report(self, realty: Realty):
+        # check if file exists
+        if not os.path.exists(self.indicadores_path):
+            raise FileNotFoundError(f"No se encontró el archivo de indicadores en: {self.indicadores_path}")
 
-        try:
-            realty_report = RealtyReport(**realty.to_dict())
+    def compute_reports(self, realties: list[Realty] | Realty):
 
-            # check if file exists
-            if not os.path.exists(self.indicadores_path):
-                raise FileNotFoundError(f"No se encontró el archivo de indicadores en: {self.indicadores_path}")
+        realties = realties if isinstance(realties, list) else [realties]
+        indicadores = pd.read_csv(self.indicadores_path)
+        places = indicadores['nombre'].unique().tolist()
+        reports = list()
+        for realty in realties:
+            try:
+                realty_report = RealtyReport(**realty.to_dict())
+                realty_report.match_place(places)
+                realty_indicadores = indicadores[indicadores['nombre'] == realty_report.barrio].sort_values(by='tipo', ascending=True)
+                for index, row in realty_indicadores.iterrows():
+                    realty_report.set_indicadores(**row.to_dict())
 
-            indicadores = pd.read_csv(self.indicadores_path)
-            places = indicadores['nombre'].unique().tolist()
-            realty_report.match_place(places)
-            indicadores = indicadores[indicadores['nombre'] == realty_report.barrio].sort_values(by='tipo', ascending=True)
-            for index, row in indicadores.iterrows():
-                realty_report.set_indicadores(**row.to_dict())
-            return realty_report
+                reports.append(realty_report)
 
-        except Exception as e:
-            self.logger.error(e, exc_info=True)
-            return None
+            except Exception as e:
+                self.logger.error(e, realty, exc_info=True)
+        
+        return reports
 
     def stars_to_emoji(self, stars):
         if isinstance(stars, (int, float)):
@@ -280,19 +283,19 @@ class Reporter:
 
         # get extension of the template file
         template_extension = self.template_path.suffix
-        base_filename = f"property_report_{realty_report.address}"
-        html_path = os.path.join(self.output_dir, f"{base_filename}{template_extension}")
+        base_filename = f"report_{realty_report.address}_{realty_report.price}"
+        report_path = os.path.join(self.output_dir, f"{base_filename}{template_extension}")
         pdf_path = os.path.join(self.output_dir, f"{base_filename}.pdf")
         
         html_content = self.render_report_content(realty_report)
 
         # Save HTML
-        with open(html_path, 'w', encoding='utf-8') as f:
+        with open(report_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
 
         # set ownmer nobody
-        # os.chown(html_path, 65534, 65534)            
-        # os.chmod(html_path, 0o777)
+        # os.chown(report_path, 65534, 65534)            
+        # os.chmod(report_path, 0o777)
 
         # Generate PDF if requested
         # try:
@@ -301,12 +304,12 @@ class Reporter:
         # os.chmod(pdf_path, 0o777)
 
         # Generate PDF if requested
-        if not generate_pdf:
-            return html_path
+        if generate_pdf:
+            pdfkit.from_file(report_path, pdf_path)
+            report_path = pdf_path
 
-        pdfkit.from_file(html_path, pdf_path)
-        return pdf_path
-
+        self.logger.info(f"Report generated in {report_path}")
+        return report_path
 
     def store_reports(self, new_reports: list[RealtyReport]):
         new_reports = [report.to_dict() for report in new_reports]
@@ -315,30 +318,32 @@ class Reporter:
         reports_df = pd.concat([reports_df, new_reports], ignore_index=True)
         reports_df.to_csv(self.reports_path, index=False)
 
-    def run(self, realty_datafile_path: Path = Path('datasets/realties.csv'), top_n: int = 10, top_field: str = 'rentabilidad_1y'):
+    def compute_top_reports(self, realties: list[Realty] | Realty, top_n: int = 10, top_field: str = 'global_score_stars'):
+        realties = realties if isinstance(realties, list) else [realties]
+        reports = self.compute_reports(realties)
+        self.store_reports(reports)
+        reports = [report for report in reports if getattr(report, top_field) is not None]
+        reports.sort(key=lambda report: getattr(report, top_field), reverse=True)
+        reports = reports[:top_n]
+        return reports
+
+    def run_on(self, realties: list[Realty] | Realty, top_n: int = 10, top_field: str = 'global_score_stars'):
+        try:
+            realties = realties if isinstance(realties, list) else [realties]
+            reports = self.compute_top_reports(realties, top_n=top_n, top_field=top_field)
+            for realtie_report in reports:     
+                self.generate_report_file(realtie_report)
+        except Exception as e:
+            self.logger.error(e, exc_info=True)
+
+    def run(self, realty_datafile_path: Path = Path('datasets/realties.csv'), top_n: int = 10, top_field: str = 'global_score_stars'):
         try:
             self.logger.info(f"Generating reports for {realty_datafile_path}")
             realties = pd.read_csv(realty_datafile_path)
-
-            new_reports = list()
-            for index, realtie_report in realties.iterrows():
-                realty = Realty(**realtie_report.to_dict())
-                realty_report = self.compute_report(realty)
-                if realty_report is not None:
-                    new_reports.append(realty_report) 
-
-            self.store_reports(new_reports)
-
-            new_reports.sort(key=lambda report: getattr(report, top_field), reverse=True)
-            new_reports = new_reports[:top_n]
-
-            for realtie_report in new_reports:     
-                report_path = self.generate_report_file(realtie_report)
-                self.logger.info(f"Report generated in {report_path}")
-
+            realties = [Realty(**e.to_dict()) for i, e in realties.iterrows()]
+            self.run_on(realties, top_n=top_n, top_field=top_field)
         except Exception as e:
             self.logger.error(e, exc_info=True)
-            self.logger.exception(e)
 
 if __name__ == "__main__":
 
@@ -346,7 +351,7 @@ if __name__ == "__main__":
     # data = Realty.get_sample_data()
     # data = {'created': '2025-01-06 11:44:38', 'link': 'https://www.idealista.com/inmueble/106576974/', 'type_v': 'Estudio', 'address': 'Les Roquetes', 'town': 'Nou Barris, Barcelona', 'price': '33.000', 'price_old': None, 'info': ['51 m² construidos, 46 m² útiles', 'Sin habitación', '2 baños', 'Segunda mano/buen estado', 'Orientación norte, este', 'Construido en 1968', 'No dispone de calefacción', 'Bajo exterior', 'Sin ascensor', '<span>Consumo: </span><span class="icon-energy-c-e">411 kWh/m² año</span>', '<span>Emisiones: </span><span class="icon-energy-c-e"></span>'], 'description': "Tecnocasa Estudi Mina de la Ciutat S. L tiene el placer de presentarles este inmueble el cual tenemos en exclusiva:<br/><br/>DOS ESTUDIOS POR 33.000 CADA UNO, dispone de 51m&sup2; de construcci&oacute;n, distribuidos cada uno de ellos de la siguiente manera: Un espacio di&aacute;fano tipo loft donde se puede hacer la cocina americana con sal&oacute;n comedor, un espaci&oacute; para descansar y un cuarto de ba&ntilde;o, Los locales se venden juntos y se encuentran ubicados en una de las calles principales del barrio, haciendo que los mismos se encuentre muy cerca de todos los servicios b&aacute;sicos, calles peatonales, se encuentra en una zona inmejorable en cuanto a comunicaciones, metro (L3), parada de Bus TMB V29, 11, 27, 127. NO DISPONEN DE CEDULA DE HABITABILIDAD.<br/><br/>Informaci&oacute;n al consumidor: Le informamos que el precio de venta ofertado no incluye los gastos de compraventa (notar&iacute;a, registro, gestor&iacute;a, inmobiliaria, impuestos estatales ITP y tasas y gastos bancarios). Si desea visitar este inmueble, cualquiera de nuestros agentes le informar&aacute; detalladamente de estos gastos antes de visitarlo.<br/><br/>La red Kiron del Grupo Tecnocasa te ayudar&aacute; a buscar la financiaci&oacute;n que mejor se adapte a tus necesidades. Son expertos en el sector financiero y est&aacute;n a tu disposici&oacute;n para que elijas la hipoteca que mejor se adapte a ti. Hasta un 100%.<br/><br/>Tecnocasa Estudi Mina de la Ciutat S. L t&eacute; el plaer de presentar-vos aquest immoble el qual tenim en exclusiva:<br/><br/>DOS ESTUDIS PER 33.000 CADASCUN, disposa de 51m&sup2; de construcci&oacute;, distribu&iuml;ts cadascun d'ells de la seg&uuml;ent manera: Un espai di&agrave;fan tipus loft on es pot fer la cuina americana amb sal&oacute; menjador, un espai per descansar i una cambra de bany, Els locals es venen junts i es troben ubicats en un dels carrers principals del barri, fent que aquests es trobi molt a prop de tots els serveis b&agrave;sics, carrers de vianants, es troba en una zona immillorable quant a comunicacions, metro (L3), parada de Bus TMB V29, 11, 27, 127. NO DISPOSEN DE CEDULA D'HABITABILITAT.<br/><br/>Informaci&oacute; al consumidor: Us informem que el preu de venda oferit no inclou les despeses de compravenda (notaria, registre, gestoria, inmobiliaria, impostos estatals ITP i taxes i despeses banc&agrave;ries). Si voleu visitar aquest immoble, qualsevol dels nostres agents us informar&agrave; detalladament d'aquestes despeses abans de visitar-lo.<br/><br/>La xarxa Kiron del Grup Tecnocasa us ajudar&agrave; a buscar el finan&ccedil;ament que millor s'adapti a les vostres necessitats. S&oacute;n experts en el sector financer i estan a la teva disposici&oacute; perqu&egrave; tri&iuml;s la hipoteca que s'adapti millor a tu. Fins a un 100%.", 'tags': None, 'agent': None}
     # realty = Realty(**data)
-    # realty_report = self.compute_report(realty)
+    # realty_report = self.compute_reports(realty)
     # html = reporter.render_report_content(realty_report)
     reporter.run()
 

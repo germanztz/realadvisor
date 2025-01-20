@@ -143,13 +143,17 @@ class Crawler:
             scraper = Scraper(url, Path(f'tests/{group}_test.csv'), list_items, list_fields, list_next, detail_fields, fields_lambda)
             data = scraper.scrap_page(open(f'tests/{group}_lista.html', 'r').read().replace("\n", "").replace("\r", ""))
             scraper.store_page_csv(data)
+            return scraper.get_scraped_items()
         else:            
             scraper = Scraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda)
             scraper.scrap()
+            return scraper.get_scraped_items()
 
     def run(self, dry_run=False):
+        scraped_items = None
         for group in self.web_specs['group'].unique():
-            self.run_scrap_group(group, dry_run)
+            scraped_items = pd.concat([scraped_items, self.run_scrap_group(group, dry_run)], ignore_index=True)
+        return scraped_items
 
 if __name__ == '__main__':
 
