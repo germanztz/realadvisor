@@ -34,7 +34,7 @@ class Daemon:
     async def run(self):
         realties = self.crawler.run(dry_run=True)
         realties = [Realty(**e.to_dict()) for i, e in realties.iterrows()]
-        self.reporter.run_on(realties, top_n=10, top_field='global_score_stars')()
+        self.reporter.run_on(realties, top_n=10, top_field='global_score_stars')
 
 if __name__ == '__main__':
 

@@ -228,6 +228,7 @@ class RealtyReport(Realty):
             - Reemplaza guiones por espacios
             - Quita espacios dobles
         """
+        if x is None: return None
         # Unescape HTML and UTF-8 entities
         x = html.unescape(x)
         # Normalizar el texto a forma NFD (descompone caracteres con diacríticos)
@@ -276,8 +277,8 @@ class RealtyReport(Realty):
     def match_place(self, places):
 
         matches = []
-        for a in self.address.split(',') + self.town.split(','):
-            match = RealtyReport.map_place(a.strip(), places)
+        for a in (x.strip() for x in (self.address or '').split(',') + (self.town or '').split(',')):
+            match = RealtyReport.map_place(a, places)
             if match is not None:
                 matches.append(match)
         # sort matches by 3 element

@@ -241,7 +241,7 @@ class Reporter:
     @staticmethod
     def get_base64_file(plot_path):
         """ Retuns a base64 encoded image from cache if exists """
-        if os.path.exists(plot_path):
+        if plot_path is not None and os.path.exists(plot_path):
             with open(plot_path, 'rb') as f:
                 return base64.b64encode(f.read()).decode('utf-8')
             

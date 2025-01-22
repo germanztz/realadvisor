@@ -26,7 +26,7 @@ class Crawler:
     @staticmethod
     def init_datafile(webs_specs_datafile_path = 'datasets/webs_specs.csv'):
 
-        idealista = [
+        web_specs = [
             { 'group': 'idealista', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc' },
 
             { 'group': 'idealista', 'type': 'regex', 'scope': 'list_items', 'name': 'list_items', 'value': '<article class="item(.+?)</article>', 'options': 'DOTALL' },
@@ -86,7 +86,7 @@ class Crawler:
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_items', 'value': 'lambda m: [e.replace("\\\\", "") for e in m]' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'link', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'address', 'value': 'lambda m : ", ".join(m)' },
-            { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'info', 'value': 'lambda m: ": ".join(m)' },
+            { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'info', 'value': 'lambda m: [": ".join(e) for e in m]' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'agent', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
 
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'link', 'value': None },
@@ -104,7 +104,7 @@ class Crawler:
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'agent', 'value': None },
         ]
 
-        web_specs = pd.DataFrame(idealista)
+        web_specs = pd.DataFrame(web_specs)
         web_specs.to_csv(webs_specs_datafile_path, index=False)
 
         return web_specs
@@ -164,3 +164,7 @@ if __name__ == '__main__':
     crawler = Crawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'))
     crawler.run(dry_run=True)
     
+    # m = [('air_conditioner', '1'), ('ceramic_stoneware', '6'), ('alarm', '77'), ('not_furnished', '130'), ('antiquity', '7'), ('bathrooms', '2'), ('conservationStatus', '4'), ('floor', '3'), ('rooms', '2'), ('surface', '50')]
+    # l = lambda m: [": ".join(e) for e in m]
+    # # print(list(map(l, m)))
+    # print(l(m))

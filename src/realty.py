@@ -71,7 +71,7 @@ class Realty:
     
     @price.setter
     def price(self, value):
-        self._price = int(Realty.parse_price(value)) if Realty.parse_price(value) else None
+        self._price = Realty.safe_int(Realty.parse_price(value))
 
     @property
     def rooms(self):
@@ -79,7 +79,7 @@ class Realty:
     
     @rooms.setter
     def rooms(self, value):
-        self._rooms = value
+        self._rooms = Realty.safe_int(value)
 
     @property
     def surface(self):
@@ -87,7 +87,7 @@ class Realty:
     
     @surface.setter
     def surface(self, value):
-        self._surface = value
+        self._surface = Realty.safe_int(value)
 
     @property
     def info(self):
@@ -111,7 +111,7 @@ class Realty:
     
     @price_old.setter
     def price_old(self, value):
-        self._price_old = int(Realty.parse_price(value)) if Realty.parse_price(value) else None
+        self._price_old = Realty.safe_int(Realty.parse_price(value))
  
     @property
     def tags(self):
@@ -172,6 +172,13 @@ class Realty:
     def __hash__(self):
         return hash(self._link)
     
+    @staticmethod
+    def safe_int(value):
+        try:
+            return int(value)
+        except Exception as e:            
+            return None
+
     @staticmethod
     def parse_price(value) -> Optional[float]:
         """Convert string numbers to integer, handling different formats"""
