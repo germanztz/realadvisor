@@ -32,31 +32,6 @@ class TestRealty(unittest.TestCase):
         self.assertIsNone(realty._tags)
         self.assertIsNone(realty._agent)
 
-    # def test_get_tags(self):
-    #     tags = Realty.extract_tags(self.sample_data['description'])
-    #     self.assertEqual(tags, ['terraza', 'Barcelona reformado'])
-
-    # def test_map_place(self):
-    #     realty = Realty(**self.sample_data)
-    #     place = Realty.map_place(realty.town, ['barcelona', 'sant andreu', 'valencia'])
-    #     self.assertEqual(place, ('sant andreu', 0.67))
-
-    # def test_get_occupation(self):
-    #     occupation = Realty.get_occupation(self.sample_data['description'])
-    #     self.assertEqual(occupation, 'ocupada')
-
-    # def test_get_town(self):
-    #     hood = Realty.get_town(self.sample_data['town'])
-    #     self.assertEqual(hood, 'sant andreu')
-
-    # def test_clean_description(self):
-    #     clean_description = Realty.clean_description(self.sample_data['description'])
-    #     self.assertEqual(clean_description, 'piso en venta en barcelona reformado y con terraza ocupada')
-
-    # def test_get_rooms(self):
-    #     rooms = Realty.get_rooms(self.sample_data['info'])
-    #     self.assertEqual(rooms, 3)
-
     def test_to_dict(self):
         realty = Realty(**Realty.get_sample_data())
         dict_output = realty.to_dict()

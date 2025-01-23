@@ -34,6 +34,9 @@ class Daemon:
     async def run(self):
         realties = self.crawler.run(dry_run=True)
         realties = [Realty(**e.to_dict()) for i, e in realties.iterrows()]
+        # reports = self.reporter.compute_top_reports(realties, top_n=10, top_field='global_score_stars')
+        # for report in reports:
+        #     self.crawler.scrap_realty(report.link)
         self.reporter.run_on(realties, top_n=10, top_field='global_score_stars')
 
 if __name__ == '__main__':

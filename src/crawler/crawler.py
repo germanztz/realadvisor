@@ -83,7 +83,9 @@ class Crawler:
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'tags', 'value': None },
             { 'group': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'agent', 'value': '"clientUrl":"(.*?)"' },
 
-            { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_items', 'value': 'lambda m: [e.replace("\\\\", "") for e in m]' },
+            # { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_items', 'value': 'lambda m: [e.replace("\\\\", "") for e in m]' },
+            # { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_items', 'value': 'lambda m: [e.replace("\\\\", "|").replace("|\\"","\\"").replace("|", "\\\\") for e in m]' },
+            { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_items', 'value': 'lambda m: [e.replace("\\\\\\"", "\\"") for e in m]' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'link', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'address', 'value': 'lambda m : ", ".join(m)' },
             { 'group': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'info', 'value': 'lambda m: [": ".join(e) for e in m]' },

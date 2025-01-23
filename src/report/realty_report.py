@@ -4,6 +4,7 @@ from difflib import SequenceMatcher
 import html
 import re
 import unicodedata
+import codecs
 import sys
 sys.path.append('src')
 from realty import Realty
@@ -229,13 +230,16 @@ class RealtyReport(Realty):
             - Quita espacios dobles
         """
         if x is None: return None
+        if x.count('\\') > 0:
+            x = codecs.decode(x, 'unicode_escape')
         # Unescape HTML and UTF-8 entities
-        x = html.unescape(x)
+        x = html.unescape(x) # 'podr&aacute;s' = 'podrás'
         # Normalizar el texto a forma NFD (descompone caracteres con diacríticos)
-        x = unicodedata.normalize('NFD', x)
+        x = unicodedata.normalize('NFD', x).encode('ascii', 'ignore').decode('utf-8')
         # Filtrar caracteres con categoría de diacrítico (Mn)
         x = ''.join(c for c in x if unicodedata.category(c) != 'Mn')
-        return x.split(' - AEI ')[0].replace('-', ' ').replace('  ', ' ').lower()
+        x = x.split(' - AEI ')[0].replace('-', ' ').replace('  ', ' ').lower()
+        return x
 
     @staticmethod
     def get_town(x):
@@ -244,8 +248,14 @@ class RealtyReport(Realty):
         return RealtyReport.estandarizar(x1)
 
     @staticmethod
-    def clean_description(text: str) -> str:
-        return RealtyReport.estandarizar(RealtyReport.RX_HTML_TAG.sub('', text.lower() if text else ''))
+    def clean_description(x: str) -> str:
+        if x is None: return None
+        x = x.lower()
+        x = RealtyReport.RX_HTML_TAG.sub('', x)
+        x = RealtyReport.estandarizar(x)
+        x = x.replace('\\n',' ').replace('\\r',' ')
+        x = ' '.join(x.split())
+        return x
     
     @staticmethod
     def find_min_int(text, rx) -> Optional[int]:
@@ -263,13 +273,15 @@ class RealtyReport(Realty):
         return None
     
     @staticmethod
-    def get_occupation(text: str) -> str:
-        if any(word.lower() in text.lower() for word in RealtyReport._okupadas_words): return 'ocupada'
-        if any(word.lower() in text.lower() for word in RealtyReport._alquiladas_words): return 'alquilada'
+    def get_occupation(x: str) -> str:
+        if x is None: return None
+        if any(word.lower() in x.lower() for word in RealtyReport._okupadas_words): return 'ocupada'
+        if any(word.lower() in x.lower() for word in RealtyReport._alquiladas_words): return 'alquilada'
         return 'disponible'
     
     @staticmethod
     def extract_tags(description: str) -> list[str]:
+        if description is None: return None
         tags = RealtyReport.RX_SINGLE_TAG.findall(description) + RealtyReport.RX_DOUBLE_TAG.findall(description)
         tags = list(dict.fromkeys(tags))
         return tags

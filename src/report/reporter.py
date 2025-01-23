@@ -54,7 +54,7 @@ class Reporter:
         places = indicadores['nombre'].unique().tolist()
         reports = list()
         for realty in realties:
-            try:
+            # try:
                 realty_report = RealtyReport(**realty.to_dict())
                 realty_report.match_place(places)
                 realty_indicadores = indicadores[indicadores['nombre'] == realty_report.barrio].sort_values(by='tipo', ascending=True)
@@ -63,8 +63,8 @@ class Reporter:
 
                 reports.append(realty_report)
 
-            except Exception as e:
-                self.logger.error(e, realty, exc_info=True)
+            # except Exception as e:
+            #     self.logger.error(e, realty, exc_info=True)
         
         return reports
 
@@ -314,11 +314,20 @@ class Reporter:
     def store_reports(self, new_reports: list[RealtyReport]):
         new_reports = [report.to_dict() for report in new_reports]
         new_reports = pd.DataFrame(new_reports)
-        reports_df = pd.read_csv(self.reports_path) if os.path.exists(self.reports_path) else pd.DataFrame(columns=RealtyReport.schema())
-        reports_df = pd.concat([reports_df, new_reports], ignore_index=True)
+        if os.path.exists(self.reports_path):
+            reports_df = pd.read_csv(self.reports_path)
+        else:
+            reports_df = pd.DataFrame(columns=new_reports.columns)
+        
+        reports_df = reports_df.set_index('link')
+        new_reports = new_reports.set_index('link')
+        reports_df.update(new_reports)
+        reports_df = pd.concat([reports_df, new_reports[~new_reports.index.isin(reports_df.index)]])
+        reports_df = reports_df.reset_index()
+        
         reports_df.to_csv(self.reports_path, index=False)
 
-    def compute_top_reports(self, realties: list[Realty] | Realty, top_n: int = 10, top_field: str = 'global_score_stars'):
+    def compute_top_reports(self, realties: list[Realty] | Realty, top_n: int = 10, top_field: str = 'global_score_stars') -> list[RealtyReport]:
         realties = realties if isinstance(realties, list) else [realties]
         reports = self.compute_reports(realties)
         self.store_reports(reports)

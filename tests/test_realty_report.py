@@ -19,7 +19,6 @@ class TestRealtyReport(unittest.TestCase):
         self.assertEqual(realty.tags, ['terraza', 'barcelona reformado'])
         self.assertEqual(realty.description, 'piso en venta en barcelona reformado y con terraza ocupada')
         self.assertEqual(realty.town, 'sant andreu, barcelona')
-             
 
     # Test abstract methods of the class
     def test_get_tags(self):
@@ -38,10 +37,6 @@ class TestRealtyReport(unittest.TestCase):
     def test_get_town(self):
         hood = RealtyReport.get_town(self.sample_data['town'])
         self.assertEqual(hood, 'sant andreu')
-
-    def test_clean_description(self):
-        clean_description = RealtyReport.clean_description(self.sample_data['description'])
-        self.assertEqual(clean_description, 'piso en venta en barcelona reformado y con terraza ocupada')
 
     def test_to_dict(self):
         realty = RealtyReport(**self.sample_data)
@@ -83,6 +78,9 @@ class TestRealtyReport(unittest.TestCase):
 
 
     def test_estandarizar(self):
+        self.assertEqual(RealtyReport.estandarizar("guinard\\u00f3"), "guinardo")
+        self.assertEqual(RealtyReport.estandarizar("guinard\u00f3"), "guinardo")
+        self.assertEqual(RealtyReport.estandarizar("guinardó"), "guinardo")
         self.assertEqual(RealtyReport.estandarizar("Barcelona - Sant Andreu"), "barcelona  sant andreu")
         self.assertEqual(RealtyReport.estandarizar("La Teixonera"), "la teixonera")
 
@@ -90,6 +88,8 @@ class TestRealtyReport(unittest.TestCase):
         self.assertEqual(RealtyReport.get_town("calle test 123,Sant Andreu, Barcelona"), "sant andreu")
 
     def test_clean_description(self):
+        clean_description = RealtyReport.clean_description(self.sample_data['description'])
+        self.assertEqual(clean_description, 'piso en venta en barcelona reformado y con terraza ocupada')
         self.assertEqual(RealtyReport.clean_description("Piso en venta en<br> Barcelona reformado y con terraza ocupada"), "piso en venta en barcelona reformado y con terraza ocupada")
         self.assertEqual(RealtyReport.clean_description(None), "")
 
