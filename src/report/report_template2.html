@@ -140,13 +140,13 @@
     <div class="container">
         <h1>Informe de Inversión Inmobiliaria</h1>
         
-        <h2>{{ type_v|title }} en <a href="{{ link }}" target="_blank" style="color: #2980B9;">{{ address|title }}</a> {{ stars_to_emoji_string }}</h2>
+        <h2>{{ type_v|title }} en <a href="{{ link }}" target="_blank" style="color: #2980B9;">{{ address|title }}</a> {{ stars_global_string }}</h2>
         
         <h3>Análisis de Inversión</h3>
         <div class="info-section">
-            <p><strong>Estrellas Globales:</strong> {{ stars_to_emoji_string }} ({{ global_score_stars }})</p>
-            <p><strong>Estrellas de Precio:</strong> {{ stars_to_emoji_string }} ({{ precio_venta_stars }})</p>
-            <p><strong>Estrellas de Rentabilidad:</strong> {{ stars_to_emoji_string }} ({{ rentabilidad_10y_stars }})</p>
+            <p><strong>Estrellas Globales:</strong> {{ stars_global_string }} ({{ global_score_stars }})</p>
+            <p><strong>Estrellas de Precio:</strong> {{ stars_price_string }} ({{ precio_venta_stars }})</p>
+            <p><strong>Estrellas de Rentabilidad:</strong> {{ stars_rentabilidad_string }} ({{ rentabilidad_10y_stars }})</p>
             <p><strong>Rentabilidad:</strong> {{ (rentabilidad_10y * 100) }} %</p>
         </div>
 
@@ -154,7 +154,7 @@
         <div class="info-section">
             <p><strong>Precio:</strong> {{ price }} €</p>
             <p><strong>Metros cuadrados:</strong> {{ surface }} m²</p>
-            <p><strong>Precio por m²:</strong> {{ precio_m2 }} €/m² ({{ stars_to_emoji_string }}) ya que es un <span class="highlight">{{ (precio_desv_media * 100) }}%</span> del precio medio de venta en {{ barrio }}: {{ precio_venta_1y }} €/m²</p>
+            <p><strong>Precio por m²:</strong> {{ precio_m2 }} €/m² ({{ stars_price_string }}) ya que es un <span class="highlight">{{ (precio_desv_media * 100) }}%</span> del precio medio de venta en {{ barrio }}: {{ precio_venta_1y }} €/m²</p>
             <p><strong>Alquiler estimado:</strong> {{ precio_alquiler_estimado }} €/mes</p>
             <p><strong>Venta estimada:</strong> {{ precio_venta_estimado }} €</p>
             <p><strong>Habitaciones:</strong> {{ rooms }}</p>
@@ -167,13 +167,13 @@
                 {{ description }}
             </div>
         </div>
-        <img src="data:image/png;base64,{{ grafico4_base64 }}"></br>
+        <img src="data:image/png;base64,{{ retabilidad_5a }}"></br>
 
 
         <h3>Análisis de la ubicación</h3>
-        <img src="data:image/png;base64,{{ grafico1_base64 }}"></br>
-        <img src="data:image/png;base64,{{ grafico2_base64 }}"></br>
-        <img src="data:image/png;base64,{{ grafico3_base64 }}"></br>
+        <img src="data:image/png;base64,{{ histograma_barrio }}"></br>
+        <img src="data:image/png;base64,{{ histograma_distrito }}"></br>
+        <img src="data:image/png;base64,{{ histograma_municipio }}"></br>
     </div>
 
 </body>

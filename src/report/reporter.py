@@ -18,6 +18,7 @@ from realty_report import RealtyReport
 from realty import Realty
 import base64
 from io import BytesIO
+import io
 
 class Reporter:
     
@@ -70,7 +71,7 @@ class Reporter:
 
     def stars_to_emoji(self, stars):
         if isinstance(stars, (int, float)):
-            full_stars = int(stars)
+            full_stars = max(1, int(stars))
             return '<span class="star-icon"></span>' * full_stars
         return ""
 
@@ -110,7 +111,7 @@ class Reporter:
         None
             Displays the plot with two y-axes showing both time series and their trend lines
         """
-        plot_path = os.path.join(Reporter.CACHE_DIR, f"{title}.png")
+        plot_path = os.path.join(Reporter.CACHE_DIR, f"{title}.svg")
         if os.path.exists(plot_path):
             return plot_path
 
@@ -175,15 +176,14 @@ class Reporter:
         
         fig.tight_layout()  # Para ajustar bien el layout
 
-        plt.savefig(plot_path)
+        # plt.savefig(plot_path)
+        plt.savefig(plot_path, format="svg", bbox_inches="tight")
         return plot_path
 
     def plot_cuadro_rentabilidad(self, inversion_precio=90000, gastos_gestion=5000, gastos_reforma=5000, anos_vista=5, retorno_bruto_mensual=700, title="Cuadro de Rentabilidad"):
+
         plot_path = None
         try:
-            plot_path = os.path.join(Reporter.CACHE_DIR, f"{title}.png")
-            if os.path.exists(plot_path):
-                return plot_path
             # Calculamos la inversión total inicial
             inversion_total = inversion_precio + gastos_gestion + gastos_reforma
             
@@ -233,11 +233,48 @@ class Reporter:
             fig.tight_layout()  # Para ajustar bien el layout
             plt.title(title)
 
-            plt.savefig(plot_path)
+            # plt.savefig(plot_path)
+            plot_path = os.path.join(Reporter.CACHE_DIR, f"{title}.svg")
+            plt.savefig(plot_path, format="svg", bbox_inches="tight")
         except Exception as e:
             self.logger.error(e, exc_info=True)
         return plot_path
     
+    def plot_star_chart(self, data, title="Star Chart", size=3):
+        plot_path = None
+        try:
+            # Extraer etiquetas y valores del diccionario
+            labels = list(data.keys())
+            values = list(data.values())
+
+            # Asegurarse de cerrar el gráfico
+            values += values[:1]
+            angles = np.linspace(0, 2 * np.pi, len(values), endpoint=True)
+
+            # Crear el gráfico polar
+            fig, ax = plt.subplots(figsize=(size, size), subplot_kw={"projection": "polar"})
+            ax.fill(angles, values, color="skyblue", alpha=0.4)
+            ax.plot(angles, values, color="blue", linewidth=2)
+
+            # Agregar las etiquetas
+            ax.set_yticks(np.arange(0, 5, 1))
+            ax.set_yticklabels([])
+            ax.set_xticks(angles[:-1])
+            ax.set_xticklabels(labels, fontsize=size*2.5)
+
+            # Configurar el título
+            ax.set_title(title, size=size*3, y=1.1)
+            fig.tight_layout()  # Para ajustar bien el layout
+
+            # plt.savefig(plot_path)
+            plot_path = os.path.join(Reporter.CACHE_DIR, f"{title}.svg")
+            plt.savefig(plot_path, format="svg", bbox_inches="tight")
+
+        except Exception as e:
+            self.logger.error(e, exc_info=True)
+
+        return plot_path
+
     @staticmethod
     def get_base64_file(plot_path):
         """ Retuns a base64 encoded image from cache if exists """
@@ -253,29 +290,38 @@ class Reporter:
         bcn_precios = pd.read_csv(self.precios_path)
         bcn_precios['mes'] = pd.to_datetime(bcn_precios['mes'])
         df = bcn_precios[bcn_precios['id'] == realty_report.id]
-        grafico1_base64 = Reporter.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        histograma_barrio = Reporter.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
         df = bcn_precios[bcn_precios['id'] == realty_report.sup_id]
-        grafico2_base64 = Reporter.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        histograma_distrito = Reporter.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
         df = bcn_precios[bcn_precios['id'] == 80000]
-        grafico3_base64 = Reporter.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
-        grafico4_base64 = self.plot_cuadro_rentabilidad(
+        histograma_municipio = Reporter.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        retabilidad_5a = self.plot_cuadro_rentabilidad(
             inversion_precio=realty_report.price, 
             gastos_gestion=5000, 
             gastos_reforma=5000, 
             anos_vista=5, 
             retorno_bruto_mensual=realty_report.precio_alquiler_estimado, 
             title="Rentabilidad estimada a 5 años")
-
+        indicadores_rentabilidad = self.plot_star_chart( data={
+                "Global": realty_report.global_score_stars,
+                "Precio": realty_report.precio_venta_stars,
+                "Rentabilidad": realty_report.rentabilidad_10y_stars,
+                "Venta": realty_report.grow_acu_venta_10y_stars, 
+                "Alquiler": realty_report.grow_acu_alquiler_10y_stars,
+            }, title="Indicadores de rentabilidad")
         content = self.template.render(
             **realty_report.to_dict(),
             logo_base64=logo_base64,
-            stars_to_emoji_string=self.stars_to_emoji(realty_report.global_score_stars),
+            stars_global_string=self.stars_to_emoji(realty_report.global_score_stars),
+            stars_price_string=self.stars_to_emoji(realty_report.precio_venta_stars),
+            stars_rentabilidad_string=self.stars_to_emoji(realty_report.rentabilidad_1y_stars),
             tags_to_emoji_string=self.tags_to_emoji(realty_report.tags),
             availability_to_emoji_string=self.availability_to_emoji(realty_report.disponibilidad),
-            grafico1_base64 = Reporter.get_base64_file(grafico1_base64),
-            grafico2_base64 = Reporter.get_base64_file(grafico2_base64),
-            grafico3_base64 = Reporter.get_base64_file(grafico3_base64),
-            grafico4_base64 = Reporter.get_base64_file(grafico4_base64),
+            histograma_barrio = Reporter.get_base64_file(histograma_barrio),
+            histograma_distrito = Reporter.get_base64_file(histograma_distrito),
+            histograma_municipio = Reporter.get_base64_file(histograma_municipio),
+            retabilidad_5a = Reporter.get_base64_file(retabilidad_5a),
+            indicadores_rentabilidad = Reporter.get_base64_file(indicadores_rentabilidad),
             )
         return content
     
@@ -357,11 +403,11 @@ class Reporter:
 if __name__ == "__main__":
 
     reporter = Reporter()
-    # data = Realty.get_sample_data()
+    data = Realty.get_sample_data()
     # data = {'created': '2025-01-06 11:44:38', 'link': 'https://www.idealista.com/inmueble/106576974/', 'type_v': 'Estudio', 'address': 'Les Roquetes', 'town': 'Nou Barris, Barcelona', 'price': '33.000', 'price_old': None, 'info': ['51 m² construidos, 46 m² útiles', 'Sin habitación', '2 baños', 'Segunda mano/buen estado', 'Orientación norte, este', 'Construido en 1968', 'No dispone de calefacción', 'Bajo exterior', 'Sin ascensor', '<span>Consumo: </span><span class="icon-energy-c-e">411 kWh/m² año</span>', '<span>Emisiones: </span><span class="icon-energy-c-e"></span>'], 'description': "Tecnocasa Estudi Mina de la Ciutat S. L tiene el placer de presentarles este inmueble el cual tenemos en exclusiva:<br/><br/>DOS ESTUDIOS POR 33.000 CADA UNO, dispone de 51m&sup2; de construcci&oacute;n, distribuidos cada uno de ellos de la siguiente manera: Un espacio di&aacute;fano tipo loft donde se puede hacer la cocina americana con sal&oacute;n comedor, un espaci&oacute; para descansar y un cuarto de ba&ntilde;o, Los locales se venden juntos y se encuentran ubicados en una de las calles principales del barrio, haciendo que los mismos se encuentre muy cerca de todos los servicios b&aacute;sicos, calles peatonales, se encuentra en una zona inmejorable en cuanto a comunicaciones, metro (L3), parada de Bus TMB V29, 11, 27, 127. NO DISPONEN DE CEDULA DE HABITABILIDAD.<br/><br/>Informaci&oacute;n al consumidor: Le informamos que el precio de venta ofertado no incluye los gastos de compraventa (notar&iacute;a, registro, gestor&iacute;a, inmobiliaria, impuestos estatales ITP y tasas y gastos bancarios). Si desea visitar este inmueble, cualquiera de nuestros agentes le informar&aacute; detalladamente de estos gastos antes de visitarlo.<br/><br/>La red Kiron del Grupo Tecnocasa te ayudar&aacute; a buscar la financiaci&oacute;n que mejor se adapte a tus necesidades. Son expertos en el sector financiero y est&aacute;n a tu disposici&oacute;n para que elijas la hipoteca que mejor se adapte a ti. Hasta un 100%.<br/><br/>Tecnocasa Estudi Mina de la Ciutat S. L t&eacute; el plaer de presentar-vos aquest immoble el qual tenim en exclusiva:<br/><br/>DOS ESTUDIS PER 33.000 CADASCUN, disposa de 51m&sup2; de construcci&oacute;, distribu&iuml;ts cadascun d'ells de la seg&uuml;ent manera: Un espai di&agrave;fan tipus loft on es pot fer la cuina americana amb sal&oacute; menjador, un espai per descansar i una cambra de bany, Els locals es venen junts i es troben ubicats en un dels carrers principals del barri, fent que aquests es trobi molt a prop de tots els serveis b&agrave;sics, carrers de vianants, es troba en una zona immillorable quant a comunicacions, metro (L3), parada de Bus TMB V29, 11, 27, 127. NO DISPOSEN DE CEDULA D'HABITABILITAT.<br/><br/>Informaci&oacute; al consumidor: Us informem que el preu de venda oferit no inclou les despeses de compravenda (notaria, registre, gestoria, inmobiliaria, impostos estatals ITP i taxes i despeses banc&agrave;ries). Si voleu visitar aquest immoble, qualsevol dels nostres agents us informar&agrave; detalladament d'aquestes despeses abans de visitar-lo.<br/><br/>La xarxa Kiron del Grup Tecnocasa us ajudar&agrave; a buscar el finan&ccedil;ament que millor s'adapti a les vostres necessitats. S&oacute;n experts en el sector financer i estan a la teva disposici&oacute; perqu&egrave; tri&iuml;s la hipoteca que s'adapti millor a tu. Fins a un 100%.", 'tags': None, 'agent': None}
-    # realty = Realty(**data)
-    # realty_report = self.compute_reports(realty)
-    # html = reporter.render_report_content(realty_report)
-    reporter.run()
+    realty = Realty(**data)
+    realty_report = reporter.compute_reports(realty)
+    html = reporter.generate_report_file(realty_report[0])
+    # reporter.run()
 
 
