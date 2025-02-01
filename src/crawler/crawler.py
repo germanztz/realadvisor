@@ -1,4 +1,5 @@
 from pathlib import Path
+from logging import Logger
 import pandas as pd
 import re
 import logging
@@ -12,7 +13,7 @@ from scraper import Scraper
 
 class Crawler:
 
-    def __init__(self, webs_specs_datafile_path:Path = Path('webs_specs.csv'), realty_datafile_path: Path = Path('realties.csv')):
+    def __init__(self, webs_specs_datafile_path:Path = Path('webs_specs.csv'), realty_datafile_path: Path = Path('realties.csv'), cache_dir: Path = None, cache_expires: int = 3600):
 
         logging.config.fileConfig('logging.conf')
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -22,6 +23,8 @@ class Crawler:
         self.realty_datafile_path = realty_datafile_path
         # self.web_specs = pd.read_csv(self.webs_specs_datafile_path)
         self.web_specs = Crawler.init_datafile(webs_specs_datafile_path)
+        self.cache_dir = cache_dir
+        self.cache_expires = cache_expires
 
     @staticmethod
     def init_datafile(webs_specs_datafile_path = 'datasets/webs_specs.csv'):
@@ -142,12 +145,12 @@ class Crawler:
         fields_lambda = self.get_dict_lambda(self.web_specs, group, 'list_field')
 
         if dry_run:
-            scraper = Scraper(url, Path(f'tests/{group}_test.csv'), list_items, list_fields, list_next, detail_fields, fields_lambda)
+            scraper = Scraper(url, Path(f'tests/{group}_test.csv'), list_items, list_fields, list_next, detail_fields, fields_lambda, self.cache_dir, self.cache_expires)
             data = scraper.scrap_page(open(f'tests/{group}_lista.html', 'r').read().replace("\n", "").replace("\r", ""))
             scraper.store_page_csv(data)
             return scraper.get_scraped_items()
         else:            
-            scraper = Scraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda)
+            scraper = Scraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda, self.cache_dir, self.cache_expires)
             scraper.scrap()
             return scraper.get_scraped_items()
 
@@ -163,10 +166,5 @@ if __name__ == '__main__':
     import os
     if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
-    crawler = Crawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'))
+    crawler = Crawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'), cache_dir=Path('cache/'), cache_expires=3600)
     crawler.run(dry_run=True)
-    
-    # m = [('air_conditioner', '1'), ('ceramic_stoneware', '6'), ('alarm', '77'), ('not_furnished', '130'), ('antiquity', '7'), ('bathrooms', '2'), ('conservationStatus', '4'), ('floor', '3'), ('rooms', '2'), ('surface', '50')]
-    # l = lambda m: [": ".join(e) for e in m]
-    # # print(list(map(l, m)))
-    # print(l(m))

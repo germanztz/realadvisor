@@ -21,18 +21,21 @@ class Daemon:
 
             self.webs_specs_datafile_path = Path(conf['crawler']['webs_specs_datafile_path']) 
             self.realty_datafile_path = Path(conf['crawler']['realty_datafile_path'])
+            self.crawler_cache_dir = Path(conf['crawler']['cache_dir'])
+            self.cache_expires = conf['crawler']['cache_expires']
 
             self.template_path = Path(conf['reporter']['template_path'])
             self.output_dir = Path(conf['reporter']['output_dir'])
             self.precios_path = Path(conf['reporter']['precios_path'])
             self.indicadores_path = Path(conf['reporter']['indicadores_path'])
             self.reports_path = Path(conf['reporter']['reports_path'])
+            self.reporter_cache_dir = Path(conf['reporter']['cache_dir'])
 
-        self.crawler = Crawler(self.webs_specs_datafile_path, self.realty_datafile_path)
-        self.reporter = Reporter(self.template_path, self.output_dir, self.precios_path, self.indicadores_path, self.reports_path)
+        self.crawler = Crawler(self.webs_specs_datafile_path, self.realty_datafile_path, self.crawler_cache_dir, self.cache_expires)
+        self.reporter = Reporter(self.template_path, self.output_dir, self.precios_path, self.indicadores_path, self.reports_path, self.reporter_cache_dir)
 
     async def run(self):
-        realties = self.crawler.run(dry_run=True)
+        realties = self.crawler.run()
         realties = [Realty(**e.to_dict()) for i, e in realties.iterrows()]
         # reports = self.reporter.compute_top_reports(realties, top_n=10, top_field='global_score_stars')
         # for report in reports:

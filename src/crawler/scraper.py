@@ -11,6 +11,7 @@ import os
 import warnings
 import logging
 import logging.config
+import hashlib
 
 class Scraper:
 
@@ -18,7 +19,7 @@ class Scraper:
     # TODO: Implementar el scrapping de un array de URLs
     # TODO: Implementar sin pandas ni numpy
     
-    def __init__(self, url=None, datafile_path: Path=None, list_items: dict=None, list_items_fields: dict=None, list_next: dict=None, detail_fields:dict=None, post_fields_lambda:dict=None):
+    def __init__(self, url=None, datafile_path: Path=None, list_items: dict=None, list_items_fields: dict=None, list_next: dict=None, detail_fields:dict=None, post_fields_lambda:dict=None, cache_dir: Path = None, cache_expires: int = 3600):
         '''
         Class for scraping a website and obtaining a database
         
@@ -66,6 +67,9 @@ class Scraper:
         if self.datafile_path and self.datafile_path.exists():
             self.main_data_df = pd.read_csv(self.datafile_path)
 
+        self.cache_dir = cache_dir
+        self.cache_expires = cache_expires
+
     def init_headers(self, url):
         self.set_url(url)
         self.headers = {
@@ -100,9 +104,30 @@ class Scraper:
         self.logger.info(f'URL set to {url}')
 
     def get_response(self, url):
+
+        if self.cache_dir is not None:
+            ts = int(datetime.datetime.now().timestamp())
+            hash_url = hashlib.md5(url.encode()).hexdigest()
+            cache_file = os.path.join(self.cache_dir, f'{hash_url}.html')
+            if Path(cache_file).exists() and (ts - os.path.getmtime(cache_file)) < self.cache_expires:
+                with open(cache_file, 'rb') as f:
+                    response = requests.Response()
+                    response._content = f.read()
+                    response.status_code = 304 
+                    self.logger.debug(f'Using cached response from {cache_file}')
+                    return response
+
         session = requests.Session()
         session.headers.update(self.headers)
         response = session.get(self.url)  
+
+        if self.cache_dir is not None and (response.status_code == 200):
+            hash_url = hashlib.md5(url.encode()).hexdigest()
+            cache_file = os.path.join(self.cache_dir, f'{hash_url}.html')
+            with open(cache_file, 'wb') as f:
+                f.write(response.content)
+            self.logger.debug(f'Response Saved to {cache_file}')
+
         self.logger.debug(f'Response status: {response.status_code}')
         return response
 
@@ -133,8 +158,8 @@ class Scraper:
             regex = fields_rx[field_name]
             if regex is None: return None
             ret = regex.findall(html)
-            ret = ret[0] if len(ret) == 1 else ret    
-            ret = None if len(ret) == 0 else ret    
+            ret = ret[0] if len(ret) == 1 else ret
+            ret = None if len(ret) == 0 else ret
             if 'sub' in field_name and not ret is None:
                 ret = fields_rx[field_name.replace('sub', 'elem')].findall(ret)
             if post_fields_lambda is not None and field_name in post_fields_lambda and ret is not None:
@@ -144,7 +169,7 @@ class Scraper:
                 # # if ret is a string
                 # elif isinstance(ret, str):
                 ret = post_fields_lambda[field_name](ret)
-                
+
 
             self.logger.debug(f'parse_field {field_name}: {ret}')
             return ret
@@ -231,7 +256,7 @@ class Scraper:
         response = self.get_response(self.url)
 
         # Verificar si la solicitud fue exitosa
-        if response.status_code == 200:
+        if response.status_code < 400:
             content = self.get_content(response)
             curr_page = self.scrap_page(content)
             hay_repetidos = self.store_page_csv(curr_page)
@@ -297,7 +322,7 @@ class Scraper:
 
         model = "llama3.1:8b"
 
-        # _format = { 
+        # _format = {
         #     "type": "object",
         #     "properties": {
         #         'url': {'type': 'string'},
@@ -331,7 +356,7 @@ class Scraper:
 
         #     Este piso de lujo se sitúa en el Paseo de Gracia, en un edificio obra del prestigioso arquitecto Josep Puig i Cadafalch, enfrente de la Casa Batlló y la Casa Ametller. Se trata de una ubicación envidiable en una de las mejores avenidas de toda Europa, rodeada de todas las comodidades y servicios que una ciudad como Barcelona te puede ofrecer.
 
-        
+
         # """
         # data = {
         #     "prompt": prompt + html,
@@ -343,14 +368,14 @@ class Scraper:
 
         # response = requests.post("http://localhost:11434/api/generate", json=data, stream=False)
         # # print(response.status_code, response.text)
-        
+
         # # write response to file
         # with open('tests/idealista_detalle_vivienda.json', 'w') as f:
         #     f.write(response.text)
 
         # json_data = json.loads(response.text)
 
-        # print(json.dumps(json.loads(json_data["response"]), indent=2))     
+        # print(json.dumps(json.loads(json_data["response"]), indent=2))
 
 if __name__ == '__main__':
 
@@ -362,14 +387,15 @@ if __name__ == '__main__':
         next_page =  { 'next_page': re.compile(r'\\"rel\\":\\"next\\",\\"href\\":\\"(.*?)\\"') }
 
         list_fields = { 
-            'address': re.compile(r'"district":"(.*?)","neighborhood":"(.*?)","zipCode":"(.*?)",.*?"province":"(.*?)"'), 
+            'address': re.compile(r'"district":"(.*?)","neighborhood":"(.*?)","zipCode":"(.*?)",.*?"province":"(.*?)"'),
         }
-        fields_lambda = { 
+        fields_lambda = {
             'list_items': lambda m: [e.replace('\\', '') for e in m],
             'address': lambda m: ", ".join(m)
         }
 
-        scraper = Scraper('https://tt.com', None, list_items, list_fields, next_page, None, fields_lambda)
+        scraper = Scraper('https://tt.com', None, list_items, list_fields, next_page, None, fields_lambda, cache_dir='cache/', cache_expires=3600)
+        
         curr_page = scraper.scrap_page(content)
         hay_repetidos = scraper.store_page_csv(curr_page)
         scraper.paginate(content, hay_repetidos)
@@ -377,4 +403,4 @@ if __name__ == '__main__':
     # [{"key":"air_conditioner","value":1,"maxValue":0,"minValue":0},{"key":"ceramic_stoneware","value":6,"maxValue":0,"minValue":0},{"key":"alarm","value":77,"maxValue":0,"minValue":0},{"key":"not_furnished","value":130,"maxValue":0,"minValue":0},{"key":"antiquity","value":7,"maxValue":0,"minValue":0},{"key":"bathrooms","value":2,"maxValue":0,"minValue":0},{"key":"conservationStatus","value":4,"maxValue":0,"minValue":0},{"key":"floor","value":3,"maxValue":0,"minValue":0},{"key":"rooms","value":2,"maxValue":0,"minValue":0},{"key":"surface","value":50,"maxValue":0,"minValue":0}]
 
 
-    
+

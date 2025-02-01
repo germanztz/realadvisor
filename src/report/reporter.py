@@ -21,12 +21,10 @@ from io import BytesIO
 import io
 
 class Reporter:
-    
-    CACHE_DIR = 'plot_cache'
 
     def __init__(self, template_path: Path = Path('src/report/report_template3.html'), output_dir: Path = Path('reports/'),
                  precios_path: Path = Path('datasets/gen_precios.csv'), indicadores_path: Path = Path('datasets/gen_indicadores.csv'),
-                 reports_path: Path = Path('datasets/gen_informe.csv')):
+                 reports_path: Path = Path('datasets/gen_informe.csv'), cache_dir: Path = Path('cache/')):
 
         logging.config.fileConfig('logging.conf')
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -47,6 +45,11 @@ class Reporter:
         # check if file exists
         if not os.path.exists(self.indicadores_path):
             raise FileNotFoundError(f"No se encontró el archivo de indicadores en: {self.indicadores_path}")
+        
+        self.cache_dir = cache_dir
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir, exist_ok=True)
+        
 
     def compute_reports(self, realties: list[Realty] | Realty):
 
@@ -88,8 +91,7 @@ class Reporter:
         tags = " ".join(tags)
         return tags
 
-    @staticmethod
-    def plot_dual_axis(df, x_col, y1_col, y2_col, title):
+    def plot_dual_axis(self, df, x_col, y1_col, y2_col, title):
         """
         Creates a dual-axis plot showing two time series with trend lines.
 
@@ -111,7 +113,7 @@ class Reporter:
         None
             Displays the plot with two y-axes showing both time series and their trend lines
         """
-        plot_path = os.path.join(Reporter.CACHE_DIR, f"{title}.svg")
+        plot_path = os.path.join(self.cache_dir, f"{title}.svg")
         if os.path.exists(plot_path):
             return plot_path
 
@@ -234,7 +236,7 @@ class Reporter:
             plt.title(title)
 
             # plt.savefig(plot_path)
-            plot_path = os.path.join(Reporter.CACHE_DIR, f"{title}.svg")
+            plot_path = os.path.join(self.cache_dir, f"{title}.svg")
             plt.savefig(plot_path, format="svg", bbox_inches="tight")
         except Exception as e:
             self.logger.error(e, exc_info=True)
@@ -267,7 +269,7 @@ class Reporter:
             fig.tight_layout()  # Para ajustar bien el layout
 
             # plt.savefig(plot_path)
-            plot_path = os.path.join(Reporter.CACHE_DIR, f"{title}.svg")
+            plot_path = os.path.join(self.cache_dir, f"{title}.svg")
             plt.savefig(plot_path, format="svg", bbox_inches="tight")
 
         except Exception as e:
@@ -290,11 +292,11 @@ class Reporter:
         bcn_precios = pd.read_csv(self.precios_path)
         bcn_precios['mes'] = pd.to_datetime(bcn_precios['mes'])
         df = bcn_precios[bcn_precios['id'] == realty_report.id]
-        histograma_barrio = Reporter.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        histograma_barrio = self.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
         df = bcn_precios[bcn_precios['id'] == realty_report.sup_id]
-        histograma_distrito = Reporter.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        histograma_distrito = self.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
         df = bcn_precios[bcn_precios['id'] == 80000]
-        histograma_municipio = Reporter.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
+        histograma_municipio = self.plot_dual_axis(df, 'mes', 'precio_alquiler', 'precio_venta', f"{df['tipo'].iloc[0]} de {df['nombre'].iloc[0]}")
         retabilidad_5a = self.plot_cuadro_rentabilidad(
             inversion_precio=realty_report.price, 
             gastos_gestion=5000, 
@@ -408,6 +410,18 @@ if __name__ == "__main__":
     realty = Realty(**data)
     realty_report = reporter.compute_reports(realty)
     html = reporter.generate_report_file(realty_report[0])
+    html 
     # reporter.run()
 
 
+    @staticmethod
+    def get_params_dict(*args, **kwargs):
+        """
+        Funcion que recibe un numero indeterminado de parametros y devuelve un hash de 32 caracteres
+        con los valores de los parametros
+        """
+        params = {}
+        for arg in args:
+            params[arg.__name__] = arg
+        params.update(kwargs)
+        return hashlib.md5(str(params).encode()).hexdigest()

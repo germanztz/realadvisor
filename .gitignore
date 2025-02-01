@@ -174,4 +174,4 @@ cython_debug/
 reports/
 flagged/
 
-plot_cache/*
+cache/*
