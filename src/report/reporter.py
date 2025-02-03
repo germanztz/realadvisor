@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 import logging
 import logging.config
+import warnings
 
 import pandas as pd
 import numpy as np # type: ignore
@@ -26,9 +27,8 @@ class Reporter:
                  precios_path: Path = Path('datasets/gen_precios.csv'), indicadores_path: Path = Path('datasets/gen_indicadores.csv'),
                  reports_path: Path = Path('datasets/gen_informe.csv'), cache_dir: Path = Path('cache/')):
 
-        logging.config.fileConfig('logging.conf')
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.info(f'Init {self.__class__.__name__}')
+        self.logger.info('Init')
 
         self.template_path = template_path
         # Initialize Jinja environment with the correct template directory
@@ -183,7 +183,7 @@ class Reporter:
         return plot_path
 
     def plot_cuadro_rentabilidad(self, inversion_precio=90000, gastos_gestion=5000, gastos_reforma=5000, anos_vista=5, retorno_bruto_mensual=700, title="Cuadro de Rentabilidad"):
-
+        warnings.filterwarnings("ignore")
         plot_path = None
         try:
             # Calculamos la inversión total inicial
@@ -403,6 +403,9 @@ class Reporter:
             self.logger.error(e, exc_info=True)
 
 if __name__ == "__main__":
+
+    logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+    if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
     reporter = Reporter()
     data = Realty.get_sample_data()

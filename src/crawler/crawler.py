@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 from logging import Logger
 import pandas as pd
 import re
@@ -15,9 +16,8 @@ class Crawler:
 
     def __init__(self, webs_specs_datafile_path:Path = Path('webs_specs.csv'), realty_datafile_path: Path = Path('realties.csv'), cache_dir: Path = None, cache_expires: int = 3600):
 
-        logging.config.fileConfig('logging.conf')
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.info(f'Init {self.__class__.__name__}')
+        self.logger.info('Init')
 
         self.webs_specs_datafile_path = webs_specs_datafile_path
         self.realty_datafile_path = realty_datafile_path
@@ -157,14 +157,17 @@ class Crawler:
     def run(self, dry_run=False):
         scraped_items = None
         for group in self.web_specs['group'].unique():
-            scraped_items = pd.concat([scraped_items, self.run_scrap_group(group, dry_run)], ignore_index=True)
+            scraped_group = self.run_scrap_group(group, dry_run=dry_run)
+            if scraped_group is None: continue
+            scraped_items = pd.concat([scraped_items, scraped_group], ignore_index=True)
         return scraped_items
 
 if __name__ == '__main__':
 
-    # delete logfile
-    import os
+    logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
     if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
-    crawler = Crawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'), cache_dir=Path('cache/'), cache_expires=3600)
-    crawler.run(dry_run=True)
+    # crawler = Crawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'), cache_dir=Path('cache/'), cache_expires=3600)
+    # crawler.run(dry_run=True)
+    crawler = Crawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'), cache_dir=None, cache_expires=3600)
+    crawler.run_scrap_group('fotocasa')

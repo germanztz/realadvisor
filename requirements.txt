@@ -8,3 +8,5 @@ pytest-cov
 watchdog
 debugpy
 seaborn
+fake_useragent
+selenium

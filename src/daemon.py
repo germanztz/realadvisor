@@ -6,6 +6,7 @@ import sys
 sys.path.append('src')
 sys.path.append('src/crawler')
 sys.path.append('src/report')
+import os
 from crawler import Crawler
 from reporter import Reporter
 from realty import Realty
@@ -14,10 +15,12 @@ from realty import Realty
 class Daemon:
     def __init__(self, config_file_path: str = 'realadvisor_conf.yaml'):
 
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.info('Init')
+
         with open(config_file_path, 'r') as f:
             conf = yaml.safe_load(f)
             # logging.config.dictConfig(conf['logging'])
-            self.logger = logging.getLogger(self.__class__.__name__)
 
             self.webs_specs_datafile_path = Path(conf['crawler']['webs_specs_datafile_path']) 
             self.realty_datafile_path = Path(conf['crawler']['realty_datafile_path'])
@@ -44,8 +47,7 @@ class Daemon:
 
 if __name__ == '__main__':
 
-    # delete logfile
-    import os
+    logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
     if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
     daemon = Daemon()
