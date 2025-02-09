@@ -6,6 +6,7 @@ crawler:
   realty_datafile_path: datasets/realties.csv
   cache_dir: cache/
   cache_expires: 3600
+  delay_seconds: 30
 
 reporter:
   template_path: src/report/report_template3.html

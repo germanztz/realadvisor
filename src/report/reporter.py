@@ -49,7 +49,16 @@ class Reporter:
         self.cache_dir = cache_dir
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir, exist_ok=True)
-        
+
+    def get_pending_realies(self, realty_datafile_path: Path = Path('datasets/realties.csv')) -> [Realty] :
+        realties = pd.read_csv(realty_datafile_path)
+        reports = pd.read_csv(self.reports_path)
+        realties = realties.set_index('link')
+        reports = reports.set_index('link')
+        # obtiene las realties cuya columna link no está en la columna link de los reportes
+        pending = realties[~realties.index.isin(reports.index)]
+        pending = [Realty(**e.to_dict()) for i, e in pending.reset_index().iterrows()]
+        return pending
 
     def compute_reports(self, realties: list[Realty] | Realty):
 
@@ -360,25 +369,42 @@ class Reporter:
         return report_path
 
     def store_reports(self, new_reports: list[RealtyReport]):
-        new_reports = [report.to_dict() for report in new_reports]
-        new_reports = pd.DataFrame(new_reports)
+
+        if new_reports is None or len(new_reports) == 0:
+            self.logger.warning(f"No new reports to store")
+            return
+        # Convert the list of RealtyReport objects to a DataFrame
+        new_reports_dicts = [report.to_dict() for report in new_reports]
+        new_reports_df = pd.DataFrame(new_reports_dicts)
+        
+        new_reports_df = new_reports_df.set_index('link')
+        # Ensure there are no duplicate 'link' values before setting the index
+        new_reports_df = new_reports_df[~new_reports_df.index.duplicated(keep='last')]
+        
+        # Load existing reports or initialize an empty DataFrame
         if os.path.exists(self.reports_path):
             reports_df = pd.read_csv(self.reports_path)
+            reports_df = reports_df.set_index('link')
         else:
-            reports_df = pd.DataFrame(columns=new_reports.columns)
+            reports_df = pd.DataFrame(columns=new_reports_df.columns)
+            reports_df = reports_df.set_index('link')
         
-        reports_df = reports_df.set_index('link')
-        new_reports = new_reports.set_index('link')
-        reports_df.update(new_reports)
-        reports_df = pd.concat([reports_df, new_reports[~new_reports.index.isin(reports_df.index)]])
-        reports_df = reports_df.reset_index()
+        # Update the existing DataFrame with new reports, keeping only unique entries
+        combined_df = pd.concat([reports_df, new_reports_df])
+        combined_df = combined_df[~combined_df.index.duplicated(keep='last')]
         
-        reports_df.to_csv(self.reports_path, index=False)
+        # Convert back to CSV without the index for storage
+        combined_df = combined_df.reset_index()
+        
+        # Save the DataFrame to a CSV file
+        combined_df.to_csv(self.reports_path, index=False)
+        self.logger.info(f"{combined_df.shape[0]} Reports saved to {self.reports_path}")
 
-    def compute_top_reports(self, realties: list[Realty] | Realty, top_n: int = 10, top_field: str = 'global_score_stars') -> list[RealtyReport]:
+    def compute_top_reports(self, realties: list[Realty] | Realty, top_n: int = 10, top_field: str = 'global_score_stars', dry_run=False) -> list[RealtyReport]:
         realties = realties if isinstance(realties, list) else [realties]
         reports = self.compute_reports(realties)
-        self.store_reports(reports)
+        self.logger.info(f"{len(reports)} Reports computed")
+        if not dry_run: self.store_reports(reports)
         reports = [report for report in reports if getattr(report, top_field) is not None]
         reports.sort(key=lambda report: getattr(report, top_field), reverse=True)
         reports = reports[:top_n]
@@ -415,7 +441,6 @@ if __name__ == "__main__":
     html = reporter.generate_report_file(realty_report[0])
     html 
     # reporter.run()
-
 
     @staticmethod
     def get_params_dict(*args, **kwargs):

@@ -229,7 +229,7 @@ class RealtyReport(Realty):
             - Reemplaza guiones por espacios
             - Quita espacios dobles
         """
-        if x is None: return None
+        if not isinstance(x, str): return None
         if x.count('\\') > 0:
             x = codecs.decode(x, 'unicode_escape')
         # Unescape HTML and UTF-8 entities

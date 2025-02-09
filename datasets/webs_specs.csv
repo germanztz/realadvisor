@@ -1,4 +1,4 @@
-group,type,scope,name,value,options
+provider,type,scope,name,value,options
 idealista,url,global,base_url,https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc,
 idealista,regex,list_items,list_items,"<article class=""item(.+?)</article>",DOTALL
 idealista,regex,list_next,list_next,"<li class=""next""><a rel=""nofollow"" class=""icon-arrow-right-after"" href=""(.+?)"">",
@@ -24,8 +24,8 @@ idealista,regex,detail_field,type_v,"<span class=""main-info__title-main"">(.+?)
 idealista,regex,detail_field,address,"<span class=""main-info__title-main"">.+? en venta en (.+?)</span>",
 idealista,regex,detail_field,town,"<span class=""main-info__title-minor"">(.+?)</span>",
 idealista,regex,detail_field,price,"<span class=""info-data-price""><span class=""txt-bold"">(.+?)</span>",
-idealista,regex,detail_field,rooms,,
-idealista,regex,detail_field,surface,,
+idealista,regex,detail_field,rooms,<li>(\d+) hab.*?</li>,
+idealista,regex,detail_field,surface,<li>(\d+) m².*?</li>,
 idealista,regex,detail_field,price_old,"<span class=""pricedown_price"">(.+?) €</span>",
 idealista,regex,detail_field,info_sub,"<section id=""details"" class=""details-box"">(.*?)</section>",
 idealista,regex,detail_field,info_elem,<li>(.*?)</li>,DOTALL

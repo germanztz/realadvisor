@@ -14,16 +14,17 @@ import logging.config
 import hashlib
 from fake_useragent import UserAgent
 # from selenium import webdriver
-# from seleniumwire2 import webdriver
+from seleniumwire2 import webdriver
+
 
 class Scraper:
 
     # TODO: Implementar sin pandas ni numpy
-    MAX_TIME_BT_REQUEST = 7
 
     def __init__(self, url=None, datafile_path: Path=None, list_items: dict=None,
         list_items_fields: dict=None, list_next: dict=None, detail_fields:dict=None,
-        post_fields_lambda:dict=None, cache_dir: Path = None, cache_expires: int = 3600):
+        post_fields_lambda:dict=None, cache_dir: Path = None, cache_expires: int = 3600, 
+        delay_seconds: int = 30):
         '''
         Class for scraping a website and obtaining a database
 
@@ -65,23 +66,26 @@ class Scraper:
 
         self.cache_dir = cache_dir
         self.cache_expires = cache_expires
+        self.delay_seconds = delay_seconds
 
     def init_headers(self, url):
         self.set_url(url)
 
         self.headers = {
             'Host': self.base_host,
-            # 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0',
-            'User-Agent': UserAgent().random,
+            'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0',
+            # 'User-Agent': UserAgent().random,
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3',
             'Accept-Encoding': 'gzip, deflate, br, zstd',
             'DNT': '1',
             'Connection': 'keep-alive',
+            'Cookie': 'reese84=3:R73lXZFfOnfUROHIrHUhFQ==:ODP9sh+kBOs4QKf8llBT4iMuDMzDZ/62fUksvcMSCeyGESPXfmunUQmEQhAKRTeDXtpzRrVah2/pL5mEdlFJp1hrpVgxHtcdO6IiVLns0FGp+Ty4dgEAFTaBMhdhDr+2h1DJfUDPD+gYimCgT95ciHHtvoehvfmtsZEp6b67W2xTQNP9pO3RLW7ajkVstlJP+tMgfxK60CeheojgYQ+hbhzlSebwTa3CxSBtq8Rje1AwH4LdHQvmrvGwC1LU9q4vjUkheUInWu2lBtB+Whz3N+8WB49kwcyeacxAfdnaIkBRfEKUAywB/fh4HHVipk42f163NAdN7JMP8yZhHF1sQvCn7u9IZP6RiY6N9kmmKRQYbMOQJaO8mR8YjXEiLYjy0fyLFb1Duj8T0emHARRbIA1fqHVYnETXkH9gMrUD8oCBAuQxh/QdTOp6SbE6SuoPCJRLBNNMpCnW933FWSojPKEoWVaBMM4TPvhhAu3zo/g=:ro28gQOmbzrsTi699lGXrgESafv8oSiJbY/4hGnJ6M4=; cu=es-es; ASP.NET_SessionId=jxobaxwisddsptg3lf2s3pkg; usunico=03/02/2025:18-17116579; auth=jxobaxwisddsptg3lf2s3pkg; segment_ga_MH0GDRSFGC=GS1.1.1738871458.15.1.1738872884.60.0.0; segment_ga=GA1.1.343924352.1736710205; AMCV_05FF6243578784B37F000101%40AdobeOrg=-408604571%7CMCIDTS%7C20126%7CMCMID%7C81088011721785289588500497039989405303%7CMCAID%7CNONE%7CMCOPTOUT-1738942758s%7CNONE%7CvVersion%7C4.6.0; re_uuid=4c10c1b8-bcff-4f77-ad57-4618fc39dd7a; AMCVS_05FF6243578784B37F000101%40AdobeOrg=1',
             'Upgrade-Insecure-Requests': '1',
             'Sec-Fetch-Dest': 'document',
             'Sec-Fetch-Mode': 'navigate',
             'Sec-Fetch-Site': 'cross-site',
+            'Sec-Fetch-User': '?1',
             'Priority': 'u=0, i',
             'TE': 'trailers'
         }
@@ -221,7 +225,7 @@ class Scraper:
             response = requests.Response()
             response._content = f.read()
             response.status_code = 304
-            self.logger.debug(f'Using cached response from {cache_file}')
+            self.logger.info(f'Obtendiendo desde el cache: {cache_file}')
             return response
 
     def _set_cached_response(self, response):
@@ -238,13 +242,17 @@ class Scraper:
 
     def selenium_interceptor(self, request):
 
+        del request.headers['sec-ch-ua']
+        del request.headers['sec-ch-ua-mobile']
+        del request.headers['sec-ch-ua-platform']
         for key,value in self.headers.items():
             del request.headers[key]
             request.headers[key] = value
 
-        self.logger.debug('Slenium Headers: %s', request.headers)
+        self.logger.info('Slenium Headers: %s', request.headers)
 
-    def _get_selenium_response(self):
+    def _get_selenium_chrome(self):
+        self.logger.info(f'Obterniendo con Chrome: {self.url}')
         options = webdriver.ChromeOptions()
         # options.add_argument("-headless")
         driver = webdriver.Chrome(options=options)
@@ -267,13 +275,15 @@ class Scraper:
 
     def _get_selenium_firefox(self):
 
+        self.logger.info(f'Obterniendo con Firefox: {self.url}')
         options = webdriver.FirefoxOptions()
         options.add_argument("--headless")
         geckodriver_path = "/snap/bin/geckodriver"
         driver_service = webdriver.FirefoxService(executable_path=geckodriver_path)
         driver = webdriver.Firefox(options=options, service=driver_service)
-        driver.request_interceptor = interceptor
+        driver.request_interceptor = self.selenium_interceptor
         driver.get(self.url)
+        time.sleep(4) # Allow page to fully load
         response = requests.Response()
         response.status_code = 200
         response._content = driver.page_source.encode('utf-8')
@@ -281,6 +291,7 @@ class Scraper:
 
     def _get_request_response(self):
 
+        self.logger.info(f'Obterniendo con Request: {self.url}')
         session = requests.Session()
         session.headers.update(self.headers)
         response = session.get(self.url, headers=self.headers)
@@ -288,17 +299,27 @@ class Scraper:
         self.logger.debug(f'Response status: {response.status_code}')
         return response
 
-    def _get_response(self, url = None):
+    def get_response(self, url = None, use_cache = True, driver = 'default'):
 
         if url is not None: self.init_headers(url)
 
-        response = self._get_cached_response()
-        if response is not None: return self._set_cached_response(response)
+        if use_cache:
+            response = self._get_cached_response() 
+            if response is not None: 
+                return response
+            
+        if driver == 'chrome':
+            response = self._get_selenium_chrome()
+        elif driver == 'firefox': 
+            response = self._get_selenium_firefox()
+        else: 
+            response = self._get_request_response()
 
-        response = self._get_request_response()
-        # response = self._get_selenium_response()
-        # response = self._get_selenium_firefox()
-        if response is not None: return self._set_cached_response(response)
+        if response.status_code >= 400:
+            self.logger.error(f"Error al enviar la solicitud: {response.status_code}: {response.reason}")
+            return None
+
+        return self._set_cached_response(response) if use_cache else response
 
     def get_content(self, response):
         content = response.content.decode('utf-8')
@@ -306,7 +327,7 @@ class Scraper:
         self.logger.debug(f'Contenido de la página: {content}')
         return content
 
-    def scrap(self):
+    def scrap_list(self):
         """
             Runs the web crawling and scraping process for the specified URL.
 
@@ -320,24 +341,22 @@ class Scraper:
             Returns:
                 None """
         start = time.perf_counter()
-
-        self.logger.info(f'Procesando: {self.url}')
-        response = self._get_response()
-
-        # Verificar si la solicitud fue exitosa
-        if response.status_code < 400:
+        response = self.get_response()
+        if response is not None:
             content = self.get_content(response)
-            curr_page = self.scrap_page(content)
+            curr_page = self.parse_list(content, self.list_items_rx, self.list_items_fields, self.post_fields_lambda)
             hay_repetidos = self.store_page_csv(curr_page)
             self.logger.info(f'Tiempo transcurrido: {time.perf_counter() - start}')
             self.paginate(content, hay_repetidos)
-        else:
-            self.logger.error(f"Error al enviar la solicitud: {response.status_code}: {response.reason}")
 
-    def scrap_page(self, content):
-        # Parsear el contenido de la web
-        curr_page = self.parse_list(content, self.list_items_rx, self.list_items_fields, self.post_fields_lambda)
-        return curr_page
+    def scrap_item(self):
+        start = time.perf_counter()
+        response = self.get_response()
+        if response is not None:
+            content = self.get_content(response)
+            data = self.parse_item(content, self.detail_fields, self.post_fields_lambda)
+            hay_repetidos = self.store_page_csv([data])
+            self.logger.info(f'Tiempo transcurrido: {time.perf_counter() - start}')
 
     def store_page_csv(self, curr_page):
 
@@ -365,20 +384,10 @@ class Scraper:
         elif hay_repetidos:
             self.logger.info('Finalizado, se han procesado los nuevos elementos')
         else:
-            time.sleep(random.uniform(1, Scraper.MAX_TIME_BT_REQUEST))
+            if self.delay_seconds > 0:
+                time.sleep(random.uniform(self.delay_seconds / 2, self.delay_seconds))
             self.set_url(next_href)
-            self.scrap()
-
-    def scrap_realty(self, url, detail_fields = None, post_fields_lambda = None) -> dict:
-        response = self._get_response(url)
-
-        if response.status_code == 200:
-            content = self.get_content(response)
-            data = self.parse_item(content.replace('\n', '').replace('\r', ''), detail_fields, post_fields_lambda)
-            return (data)
-        else:
-            self.logger.error(f"Error al enviar la solicitud: {response.status_code}: {response.reason}")
-            return None
+            self.scrap_list()
 
     def get_scraped_items(self):
         return self.last_scaped_df
@@ -451,11 +460,11 @@ if __name__ == '__main__':
     logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
     if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
-    def test():
-        # scraper = Scraper('https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate')
+    def test_scrap_list():
+        scraper = Scraper('https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate')
+        # scraper = Scraper('https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc')
         # scraper = Scraper('https://httpbin.io/headers')
-        scraper = Scraper('https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc')
-        scraper.scrap()
+        scraper.scrap_list()
 
     def test_file():
         with open('tests/fotocasa_lista.html', 'r') as f:
@@ -473,38 +482,18 @@ if __name__ == '__main__':
 
             scraper = Scraper('https://tt.com', None, list_items, list_fields, next_page, None, fields_lambda, cache_dir='cache/', cache_expires=3600)
             
-            curr_page = scraper.scrap_page(content)
+            curr_page = scraper.parse_list(content, list_items, list_fields, fields_lambda)
             hay_repetidos = scraper.store_page_csv(curr_page)
             scraper.paginate(content, hay_repetidos)
             print(curr_page)
         # [{"key":"air_conditioner","value":1,"maxValue":0,"minValue":0},{"key":"ceramic_stoneware","value":6,"maxValue":0,"minValue":0},{"key":"alarm","value":77,"maxValue":0,"minValue":0},{"key":"not_furnished","value":130,"maxValue":0,"minValue":0},{"key":"antiquity","value":7,"maxValue":0,"minValue":0},{"key":"bathrooms","value":2,"maxValue":0,"minValue":0},{"key":"conservationStatus","value":4,"maxValue":0,"minValue":0},{"key":"floor","value":3,"maxValue":0,"minValue":0},{"key":"rooms","value":2,"maxValue":0,"minValue":0},{"key":"surface","value":50,"maxValue":0,"minValue":0}]
 
+    def test_response():
+        scraper = Scraper('https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate')
+        # scraper = Scraper('https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc')
+        # scraper = Scraper('https://httpbin.io/headers')
+        print(scraper.get_response().content)
 
-    # define the request interceptor to configure custom headers
-    def interceptor(request):
-        print('interceptor')
-        del request.headers["User-Agent"]
-        request.headers["User-Agent"] = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/133.0'
-
-    def test_selenium_headers():
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument("--headless")
-        driver = webdriver.Chrome(options = chrome_options)
-        driver.request_interceptor = interceptor
-        driver.get("https://httpbin.io/headers")
-        print(driver.page_source)
-
-    def test_selenium_firefox():
-
-        options = webdriver.FirefoxOptions()
-        options.add_argument("--headless")
-        geckodriver_path = "/snap/bin/geckodriver"
-        driver_service = webdriver.FirefoxService(executable_path=geckodriver_path)
-        driver = webdriver.Firefox(options=options, service=driver_service)
-        driver.request_interceptor = interceptor
-        driver.get("https://httpbin.io/headers")
-        print(driver.page_source)
-
-    test()
+    test_response()
 #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
 #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
