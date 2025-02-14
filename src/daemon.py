@@ -1,26 +1,25 @@
 import logging.config
 import asyncio
 import yaml
-from pathlib import Path
 import sys
+import time
+import random
+import argparse
+import glob
+import pytz
+import os
+import re
 sys.path.append('src')
 sys.path.append('src/crawler')
 sys.path.append('src/report')
-import os
 from crawler import Crawler
 from reporter import Reporter
 from realty import Realty
-import re
-
-import argparse
+from pathlib import Path
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
-import glob
 from PyPDF2 import PdfMerger
 from telegram import Bot
 from datetime import datetime, timedelta
-import pytz
-
 
 class Daemon:
 
@@ -40,8 +39,9 @@ class Daemon:
             self.conf = yaml.safe_load(f)
 
             self.dry_run = self.dry_run if self.dry_run is not None else self.conf['daemon']['dry_run']
-            self.bot_token = self.conf['daemon']['bot_token']
-            self.chat_id = self.conf['daemon']['chat_id']
+            self.bot_token = self.conf['daemon']['telegram']['bot_token']
+            self.chat_id = self.conf['daemon']['telegram']['chat_id']
+            self.max_realties_in_report = self.conf['daemon']['max_realties_in_report']
 
             self.webs_specs_datafile_path = Path(self.conf['crawler']['webs_specs_datafile_path']) 
             self.realty_datafile_path = Path(self.conf['crawler']['realty_datafile_path'])
@@ -66,20 +66,29 @@ class Daemon:
     def generate_new_reports(self):
         realties = self.reporter.get_pending_realies(self.realty_datafile_path)
         self.logger.info(f"{len(realties)} new realties found")
-        reports = self.reporter.compute_top_reports(realties, top_n=len(realties), top_field='global_score_stars', dry_run=self.dry_run)
-    
+        if len(realties) < 1: return
+        
+        detail_realties = []
+        for realty in realties:
+            try:
+                provider = re.findall(r'://(.+)\.\w+/', realty.link)
+                provider = provider[0].split('.')[-1]
+                crawled_realties = self.crawler.crawl_item(provider, realty.link, dry_run=self.dry_run)
+                detail_realties.append(Realty(**crawled_realties[0]))
+            except Exception as e:
+                self.logger.error(f'Error while crawling realty: {realty}')
+                self.logger.error(e, exc_info=True)
+                
+            time.sleep(random.uniform(self.delay_seconds / 2, self.delay_seconds))
+        
+        reports = self.reporter.compute_top_reports(detail_realties, top_n=self.max_realties_in_report, top_field='global_score_stars', dry_run=self.dry_run)
+
         for report in reports:
-            provider = re.findall(r'://(.+)\.\w+/', report.link)
-            provider = provider[0].split('.')[-1]
-            realties = self.crawler.crawl_item(provider, report.link, dry_run=self.dry_run)
-            realties = [Realty(**e) for e in realties]
-            report = self.reporter.compute_reports(realties)[0]
-            report = self.reporter.generate_report_file(report)
-            
-            if not self.dry_run: sleep(self.delay_seconds)
+            self.reporter.generate_report_file(report)
 
     async def send_report(self):
         pdfs = glob.glob(f'{self.output_dir}/*.pdf')
+        self.logger.info(f"{len(pdfs)} PDF files found")
         if len(pdfs) < 1: return
 
         merger = PdfMerger()
@@ -92,12 +101,15 @@ class Daemon:
         # https://github.com/alexini-mv/manual-python-telegram-bot/blob/master/funciones_basicas_telegram.ipynb
         with open(f'{self.reporter_cache_dir}/merged.pdf', 'rb') as f:
             bot = Bot(token=self.bot_token)
-            self.logger.debug(f'Enviando telegram to {self.chat_id}, {self.bot_token}')
+            self.logger.debug(f'Enviando telegram to {self.chat_id}')
             # await bot.send_message(chat_id=self.chat_id, text='Informe de la semana')
             await bot.send_document(document=f,  chat_id=self.chat_id, caption='Informe de la semana')
 
-            # await bot.send_document(chat_id=self.chat_id, document=f, caption=mensaje)
-            # await self.bot.send_document(chat_id=self.chat_id, document=f, caption='Informe de la semana')
+        # Vaciar la carpeta ouputdir
+        if not self.dry_run:
+            for file in glob.glob(f'{self.output_dir}/*.*'):
+                os.remove(file)
+
 
     async def telegram_monitor(self):
         self.logger.info('Iniciando monitor de telegram')

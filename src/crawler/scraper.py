@@ -385,8 +385,7 @@ class Scraper:
         elif hay_repetidos:
             self.logger.info('Finalizado, se han procesado los nuevos elementos')
         else:
-            if self.delay_seconds > 0:
-                time.sleep(random.uniform(self.delay_seconds / 2, self.delay_seconds))
+            time.sleep(random.uniform(self.delay_seconds / 2, self.delay_seconds))
             self.set_url(next_href)
             self.scrap_list()
 
