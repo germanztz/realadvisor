@@ -10,3 +10,6 @@ debugpy
 seaborn
 fake_useragent
 selenium
+apscheduler
+PyPDF2
+python-telegram-bot

@@ -11,7 +11,6 @@ import sys
 sys.path.append('src/crawler')
 from scraper import Scraper
 
-
 class Crawler:
 
     def __init__(self, webs_specs_datafile_path:Path = Path('webs_specs.csv'), realty_datafile_path: Path = Path('realties.csv'), cache_dir: Path = None, cache_expires: int = 3600, delay_seconds: int = 30):
@@ -171,7 +170,6 @@ class Crawler:
             scraper = Scraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda, self.cache_dir, self.cache_expires, self.delay_seconds)
             scraper.scrap_item()
             return scraper.get_scraped_items()
-
 
     def run(self, dry_run=False):
         scraped_items = None

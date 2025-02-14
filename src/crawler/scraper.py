@@ -16,7 +16,6 @@ from fake_useragent import UserAgent
 # from selenium import webdriver
 from seleniumwire2 import webdriver
 
-
 class Scraper:
 
     # TODO: Implementar sin pandas ni numpy
@@ -194,7 +193,7 @@ class Scraper:
         elements_html = elements_html[next(iter(list_items_rx.keys()))]
         list_columns = [f.replace('_sub', '') for f in fields_rx.keys() if 'elem' not in f]
 
-        self.logger.info(f'Campos a extraer: {list_columns}')
+        self.logger.debug(f'Campos a extraer: {list_columns}')
 
         if elements_html is None:
             self.logger.warning(f'la busqueda de elementos de la lista devolvió None {list_items_rx}')
@@ -370,9 +369,11 @@ class Scraper:
             repetidos = curr_page_df['link'].isin(self.main_data_df['link'])
             hay_repetidos = repetidos.any()
             curr_page_df = curr_page_df[~repetidos]
-        self.main_data_df = pd.concat([self.main_data_df, curr_page_df], ignore_index=True)
+        # print('main_data_df',self.main_data_df)
+        if not curr_page_df.empty:
+            self.main_data_df = pd.concat([self.main_data_df, curr_page_df], ignore_index=True)
+            self.main_data_df.to_csv(self.datafile_path, index=False)
         self.logger.info(f"Elementos añadidos a la bbdd: {len(curr_page_df)}")
-        self.main_data_df.to_csv(self.datafile_path, index=False)
         return hay_repetidos
 
     def paginate(self, content, hay_repetidos):
@@ -495,5 +496,5 @@ if __name__ == '__main__':
         print(scraper.get_response().content)
 
     test_response()
-#      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
-#      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
+    #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
+    #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"

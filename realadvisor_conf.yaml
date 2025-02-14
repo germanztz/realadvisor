@@ -1,12 +1,21 @@
 daemon:
   dry_run: False
+  bot_token: 7593613541:AAFPiHs10odKrgJ0pXcz7G-KJ7ectRLDoEk
+  chat_id: -4747972537
+  jobs:
+    - function: scrap_new_realies
+      interval_seconds: 36000
+    - function: generate_new_reports
+      interval_seconds: 3600
+    - function: telegram_monitor
+      interval_seconds: 10
 
 crawler:
   webs_specs_datafile_path: datasets/webs_specs.csv
   realty_datafile_path: datasets/realties.csv
   cache_dir: cache/
   cache_expires: 3600
-  delay_seconds: 30
+  delay_seconds: 3
 
 reporter:
   template_path: src/report/report_template3.html
