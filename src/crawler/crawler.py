@@ -20,8 +20,8 @@ class Crawler:
 
         self.webs_specs_datafile_path = webs_specs_datafile_path
         self.realty_datafile_path = realty_datafile_path
-        # self.web_specs = pd.read_csv(self.webs_specs_datafile_path)
-        self.web_specs = Crawler.init_datafile(webs_specs_datafile_path)
+        self.web_specs = pd.read_csv(self.webs_specs_datafile_path)
+        # self.web_specs = Crawler.init_datafile(webs_specs_datafile_path)
         self.cache_dir = cache_dir
         self.cache_expires = cache_expires
         self.delay_seconds = delay_seconds
@@ -31,7 +31,6 @@ class Crawler:
 
         web_specs = [
             { 'provider': 'idealista', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc' },
-
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_items', 'name': 'list_items', 'value': '<article class="item(.+?)</article>', 'options': 'DOTALL' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_next', 'name': 'list_next', 'value': '<li class="next"><a rel="nofollow" class="icon-arrow-right-after" href="(.+?)">' },
 
@@ -48,12 +47,6 @@ class Crawler:
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'description', 'value': '<p class="ellipsis.*?>(.+?)<' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'tags', 'value': '<span class="listing-tags ">(.+?)</span>', 'options': 'DOTALL' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'agent', 'value': '<span class="hightop-agent-name">(.+?)</span>' },
-
-            { 'provider': 'idealista', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_next', 'value': 'lambda m: f"https://www.idealista.com{m}" if isinstance(m, str) else f"https://www.idealista.com{m.group(1)}"' },
-            { 'provider': 'idealista', 'type': 'lambda', 'scope': 'list_field', 'name': 'link', 'value': 'lambda m: f"https://www.idealista.com{m}" if isinstance(m, str) else f"https://www.idealista.com{m.group(1)}"' },
-            { 'provider': 'idealista', 'type': 'lambda', 'scope': 'list_field', 'name': 'price', 'value': 'lambda m: m.replace(".", "")' },
-            { 'provider': 'idealista', 'type': 'lambda', 'scope': 'list_field', 'name': 'price_old', 'value': 'lambda m: m.replace(".", "")' },
-
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'link', 'value': '<link rel="canonical" href="https://www.idealista.com(.+?)"/>' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'type_v', 'value': '<span class="main-info__title-main">(.+?) en venta en .+?</span>' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'address', 'value': '<span class="main-info__title-main">.+? en venta en (.+?)</span>' },
@@ -68,8 +61,12 @@ class Crawler:
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'tags', 'value': '<span class="tag ">(.+?)</span>', 'options': 'DOTALL' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'agent', 'value': '<h2 class="aditional-link_title .+? href="(.+?)".+?</a>' },
 
-            { 'provider': 'fotocasa', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate' },
+            { 'provider': 'idealista', 'type': 'lambda', 'scope': 'global', 'name': 'list_next', 'value': 'lambda m: f"https://www.idealista.com{m}" if isinstance(m, str) else f"https://www.idealista.com{m.group(1)}"' },
+            { 'provider': 'idealista', 'type': 'lambda', 'scope': 'global', 'name': 'link', 'value': 'lambda m: f"https://www.idealista.com{m}" if isinstance(m, str) else f"https://www.idealista.com{m.group(1)}"' },
+            { 'provider': 'idealista', 'type': 'lambda', 'scope': 'global', 'name': 'price', 'value': 'lambda m: m.replace(".", "")' },
+            { 'provider': 'idealista', 'type': 'lambda', 'scope': 'global', 'name': 'price_old', 'value': 'lambda m: m.replace(".", "")' },
 
+            { 'provider': 'fotocasa', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate' },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_items', 'name': 'list_items', 'value': 'accuracy(.+?)userId', 'options': 'DOTALL' },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_next', 'name': 'list_next', 'value': '\\\\"rel\\\\":\\\\"next\\\\",\\\\"href\\\\":\\\\"(.*?)\\\\"' },
 
@@ -85,28 +82,26 @@ class Crawler:
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'description', 'value': '"description":"(.*?)"' },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'tags', 'value': None },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'agent', 'value': '"clientUrl":"(.*?)"' },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'link', 'value': '\\\\"realEstate\\\\":.*\\\\"detail\\\\":.*\\\\"es-ES\\\\":\\\\"(.+?)\\\\"' },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'type_v', 'value': '\\\\"realEstate\\\\":.*\\\\"buildingType\\\\":\\\\"(.+?)\\\\"'},
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'address', 'value': '\\\\"realEstate\\\\":.*\\\\"address\\\\":.*?\\\\"district\\\\":\\\\"(.*?)\\\\",.*?\\\\"neighborhood\\\\":\\\\"(.*?)\\\\",.*?\\\\"zipCode\\\\":\\\\"(.*?)\\\\",.*?\\\\"province\\\\":\\\\"(.*?)\\\\"' },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'town', 'value': '\\\\"realEstate\\\\":.*\\\\"address\\\\":.*?\\\\"district\\\\":\\\\"(.*?)\\\\"' },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'price', 'value': '\\\\"realEstate\\\\":.*\\\\"price\\\\":(\\d+),' },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'rooms', 'value': '\\\\"realEstate\\\\":.*\\\\"features\\\\":.*?\\\\"rooms\\\\":(\\d+),' },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'surface', 'value': '\\\\"realEstate\\\\":.*\\\\"features\\\\":.*?\\\\"surface\\\\":(\\d+),' },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'price_old', 'value': '\\\\"realEstate\\\\":.*\\\\"reducedPrice\\\\":(\\d+),' },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'info', 'value': '\\\\"realEstate\\\\":.*\\\\"extras\\\\":\\[(.+?)\\].*\\\\"features\\\\":\\{(.+?)\\}' },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'description', 'value': '\\\\"realEstate\\\\":.*\\\\"descriptions\\\\":.+?\\\\"es-ES\\\\":\\\\"(.+?)\\\\"' },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'tags', 'value': None },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'agent', 'value': '\\\\"realEstate\\\\":.*\\\\"clientUrl\\\\":\\\\"(.+?)\\\\"'},
 
-            # { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_items', 'value': 'lambda m: [e.replace("\\\\", "") for e in m]' },
-            # { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_items', 'value': 'lambda m: [e.replace("\\\\", "|").replace("|\\"","\\"").replace("|", "\\\\") for e in m]' },
-            { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'list_items', 'value': 'lambda m: [e.replace("\\\\\\"", "\\"") for e in m]' },
-            { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'link', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
-            { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'address', 'value': 'lambda m : ", ".join(m)' },
+            { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'global', 'name': 'list_items', 'value': 'lambda m: [e.replace("\\\\\\"", "\\"") for e in m]' },
+            { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'global', 'name': 'link', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
+            { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'global', 'name': 'address', 'value': 'lambda m : ", ".join(m)' },
             { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'info', 'value': 'lambda m: [": ".join(e) for e in m]' },
-            { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'agent', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
+            { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'detail_field', 'name': 'info', 'value': 'lambda m: "".join([c for c in f"{m}".lower() if c in "qwertyuiopñlkjhgfdsazxcvbnm,:1234567890 "]).split(",") ' },
+            { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'global', 'name': 'agent', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
 
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'link', 'value': None },
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'type_v', 'value': None },
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'address', 'value': None },
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'town', 'value': None },
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'price', 'value': None },
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'rooms', 'value': None },
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'surface', 'value': None },
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'price_old', 'value': None },
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'info_sub', 'value': None },
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'info_elem', 'value': None },
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'description', 'value': None },
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'tags', 'value': None},
-            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'agent', 'value': None },
         ]
 
         web_specs = pd.DataFrame(web_specs)
@@ -124,12 +119,12 @@ class Crawler:
         for index, row in df.iterrows():
             regex_str = row['value']
             options = re.DOTALL if str(row['options']).__contains__('DOTALL') else 0
-            result[row['name']] = re.compile(regex_str, options) if regex_str else None
+            result[row['name']] = re.compile(regex_str, options) if type(regex_str) is str else None
         return result
 
     def get_dict_lambda(self, df, provider, scope) -> dict:
         result = {}
-        df = df[(df['provider'] == provider) & (df['type'] == 'lambda') & (df['scope'] == scope)]
+        df = df[(df['provider'] == provider) & (df['type'] == 'lambda') & (df['scope'].isin([scope, 'global']))]
         for index, row in df.iterrows():
             result[row['name']] = eval(row['value'])
         return result
@@ -140,34 +135,35 @@ class Crawler:
         list_next = self.get_dict_rx(self.web_specs, provider, 'list_next')
         list_fields = self.get_dict_rx(self.web_specs, provider, 'list_field')
         detail_fields = self.get_dict_rx(self.web_specs, provider, 'detail_field')
-        fields_lambda = self.get_dict_lambda(self.web_specs, provider, 'list_field')
+        list_fields_lambda = self.get_dict_lambda(self.web_specs, provider, 'list_field')
+        detail_fields_lambda = self.get_dict_lambda(self.web_specs, provider, 'detail_field')
 
-        return url, list_items, list_next, list_fields, detail_fields, fields_lambda
+        return url, list_items, list_next, list_fields, detail_fields, list_fields_lambda, detail_fields_lambda
 
     def crawl_provider(self, provider, dry_run=False):
 
         self.logger.info(f"Crawling provider: {provider}")
-        url, list_items, list_next, list_fields, detail_fields, fields_lambda = self._get_provider_specs(provider)
+        url, list_items, list_next, list_fields, detail_fields, list_fields_lambda, detail_fields_lambda = self._get_provider_specs(provider)
 
         if dry_run:
-            scraper = Scraper(url, Path(f'tests/{provider}_test.csv'), list_items, list_fields, list_next, detail_fields, fields_lambda, cache_dir=None, cache_expires=0, delay_seconds=0)
-            data = scraper.parse_list(open(f'tests/{provider}_lista.html', 'r').read().replace("\n", "").replace("\r", ""), list_items, list_fields, fields_lambda)
+            scraper = Scraper(url, Path(f'tests/{provider}_test.csv'), list_items, list_fields, list_next, detail_fields, list_fields_lambda, detail_fields_lambda, cache_dir=None, cache_expires=0, delay_seconds=0)
+            data = scraper.parse_list(open(f'tests/{provider}_lista.html', 'r').read().replace("\n", "").replace("\r", ""), list_items, list_fields, list_fields_lambda)
             scraper.store_page_csv(data)
             return scraper.get_scraped_items()
         else:            
-            scraper = Scraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda, self.cache_dir, self.cache_expires, self.delay_seconds)
+            scraper = Scraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, list_fields_lambda, detail_fields_lambda, self.cache_dir, self.cache_expires, self.delay_seconds)
             scraper.scrap_list()
             return scraper.get_scraped_items()
 
     def crawl_item(self, provider, url, dry_run=False):
         self.logger.info(f"Crawling item: {provider} , {url}")
-        _, list_items, list_next, list_fields, detail_fields, fields_lambda = self._get_provider_specs(provider)
+        _, list_items, list_next, list_fields, detail_fields, list_fields_lambda, detail_fields_lambda = self._get_provider_specs(provider)
         if dry_run:
-            scraper = Scraper(url, Path(f'tests/{provider}_test.csv'), list_items, list_fields, list_next, detail_fields, fields_lambda, cache_dir=None, cache_expires=0, delay_seconds=0)
-            data = scraper.parse_item(open(f'tests/{provider}_detalle.html', 'r').read().replace("\n", "").replace("\r", ""), detail_fields, fields_lambda)
+            scraper = Scraper(url, Path(f'tests/{provider}_test.csv'), list_items, list_fields, list_next, detail_fields, list_fields_lambda, detail_fields_lambda, cache_dir=None, cache_expires=0, delay_seconds=0)
+            data = scraper.parse_item(open(f'tests/{provider}_detalle.html', 'r').read().replace("\n", "").replace("\r", ""), detail_fields, detail_fields_lambda)
             return [data]
         else:            
-            scraper = Scraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, fields_lambda, self.cache_dir, self.cache_expires, self.delay_seconds)
+            scraper = Scraper(url, self.realty_datafile_path, list_items, list_fields, list_next, detail_fields, list_fields_lambda, detail_fields_lambda, self.cache_dir, self.cache_expires, self.delay_seconds)
             scraper.scrap_item()
             return scraper.get_scraped_items()
 
@@ -184,7 +180,7 @@ if __name__ == '__main__':
     logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
     if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
-    # crawler = Crawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'), cache_dir=Path('cache/'), cache_expires=3600)
-    # crawler.run(dry_run=True)
-    crawler = Crawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'), cache_dir=None, cache_expires=3600)
-    crawler.crawl_provider('fotocasa')
+    crawler = Crawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'), cache_dir='cache/', cache_expires=3600)
+    item = crawler.crawl_item('fotocasa', 'https://www.fotocasa.es/es/comprar/vivienda/barcelona-capital/no-amueblado/185497469/d', dry_run=True)
+    print(item)
+#  a

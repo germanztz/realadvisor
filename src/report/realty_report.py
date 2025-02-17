@@ -249,7 +249,7 @@ class RealtyReport(Realty):
 
     @staticmethod
     def clean_description(x: str) -> str:
-        if x is None: return None
+        if not type(x) is str: return None
         x = x.lower()
         x = RealtyReport.RX_HTML_TAG.sub('', x)
         x = RealtyReport.estandarizar(x)

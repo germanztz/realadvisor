@@ -1,0 +1,286 @@
+"realEstate": {
+    "energyCertificate": "G",
+    "accuracy": true,
+    "address": {
+        "cityId": 8019,
+        "cityZoneId": 376,
+        "country": "Espa\u00F1a",
+        "countryId": 724,
+        "countyId": 232,
+        "customZone": "",
+        "district": "Nou Barris",
+        "districtId": 1147,
+        "neighborhood": "Les Roquetes",
+        "neighbourhoodId": 320,
+        "regionLevel1Id": 9,
+        "regionLevel2Id": 8,
+        "zipCode": "08042",
+        "municipality": " Barcelona Capital",
+        "province": "Barcelona",
+        "city": " Barcelona Capital",
+        "cityZone": "",
+        "combinedLocationId": "724,9,8,232,376,8019,0,1147,320",
+        "county": "Barcelon\u00E8s",
+        "regionLevel1": "Catalu\u00F1a",
+        "regionLevel2": "Barcelona",
+        "upperLevel": "Les Roquetes"
+    },
+    "alterDate": "0001-01-01T00:00:00",
+    "buildingSubtype": "Flat",
+    "buildingType": "Flat",
+    "clientAlias": "GC INMOBILIARIA",
+    "clientContactEmail": "",
+    "clientEmail": "",
+    "clientId": 9202752587558,
+    "clientName": "PAL CAT GESTION S.L",
+    "clientUrl": "/es/inmobiliaria-gc-inmobiliaria/comprar/inmuebles/espana/todas-las-zonas/l?clientId=9202752587558",
+    "clientTypeId": 3,
+    "companyIdWas": 900610156021,
+    "contactName": "PAL CAT GESTION S.L",
+    "coordinates": {
+        "latitude": 41.44677,
+        "longitude": 2.1750548,
+        "accuracy": 1
+    },
+    "contracts": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
+    "date": {
+        "diff": 14,
+        "unit": "DAYS",
+        "timestamp": 1738272538467
+    },
+    "descriptions": {
+        "es-ES": "Escriturado como vivienda y no dispone de c\u00E9dula de habitabilidad. Se accede directamente desde la calle, y dispone de una habitaci\u00F3n."
+    },
+    "detail": {
+        "ca-ES": "/ca/comprar/vivenda/barcelona-capital/no-moblat/185497469/d",
+        "de-DE": "/de/kaufen/wohnimmobilie/barcelona-capital/no-amueblado/185497469/d",
+        "en-GB": "/en/buy/home/barcelona-capital/not-furnished/185497469/d",
+        "es-ES": "/es/comprar/vivienda/barcelona-capital/no-amueblado/185497469/d"
+    },
+    "energyCertificateDownload": "",
+    "externalContactUrl": "",
+    "extras": [
+        "Parquet",
+        "Cocina Equipada"
+    ],
+    "features": {
+        "rooms": 1,
+        "bathrooms": 1,
+        "surface": 50,
+        "energyCertificate": 7,
+        "orientation": 5,
+        "hotWater": 0,
+        "heating": 0,
+        "conservationState": 1,
+        "antiquity": 0,
+        "floor": 0,
+        "surfaceLand": 0
+    },
+    "featuresList": [
+        {
+            "label": "typology",
+            "literal": "FEATURES.TYPOLOGY",
+            "value": "flat"
+        },
+        {
+            "label": "orientation",
+            "literal": "FEATURES.ORIENTATION",
+            "value": "Sureste"
+        },
+        {
+            "label": "conservationState",
+            "literal": "FEATURES.CONSERVATIONSTATE",
+            "value": "Casi nuevo"
+        },
+        {
+            "label": "furnished",
+            "literal": "FEATURES.FURNISHED",
+            "value": "NO"
+        },
+        {
+            "label": "energy",
+            "literal": "FEATURES.ENERGY",
+            "value": {
+                "propertyId": 0,
+                "energyPerformanceCertificateTypeId": 1,
+                "energyEfficiencyRatingTypeId": 7,
+                "energyEfficiencyValue": 999,
+                "environmentImpactRatingTypeId": 7,
+                "environmentImpactValue": 999,
+                "alterdate": "0001-01-01T00:00:00",
+                "creationDate": "0001-01-01T00:00:00",
+                "statusId": 0,
+                "energyEfficiencyRatingType": "G",
+                "environmentImpactRatingType": "G"
+            }
+        },
+        {
+            "label": "emissions",
+            "literal": "FEATURES.EMISSIONS",
+            "value": {
+                "propertyId": 0,
+                "energyPerformanceCertificateTypeId": 1,
+                "energyEfficiencyRatingTypeId": 7,
+                "energyEfficiencyValue": 999,
+                "environmentImpactRatingTypeId": 7,
+                "environmentImpactValue": 999,
+                "alterdate": "0001-01-01T00:00:00",
+                "creationDate": "0001-01-01T00:00:00",
+                "statusId": 0,
+                "energyEfficiencyRatingType": "G",
+                "environmentImpactRatingType": "G"
+            }
+        }
+    ],
+    "hasMicrosite": true,
+    "hasOpenHouse": false,
+    "hasStamp": false,
+    "hasVgo": false,
+    "highlight": false,
+    "id": 185497469,
+    "isDiscarded": false,
+    "isExternalContact": false,
+    "isFaved": false,
+    "isNew": false,
+    "isNewConstruction": false,
+    "isOpportunity": false,
+    "isPackAdvancePriority": false,
+    "isPackPremiumPriority": false,
+    "isPremium": false,
+    "isTecnocasaFranchisee": false,
+    "isTrackedPhone": true,
+    "isVirtualTour": false,
+    "location": "Torres, 57",
+    "multimedia": [
+        {
+            "src": "https://static.fotocasa.es/images/ads/4945e599-aadf-49ab-b787-9e39e7d0d3eb?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/333a2025-cc62-4a4f-bc57-2912f13d30e6?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/2f73e450-df81-43ac-bb2b-0dbffd9d406c?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/9cd48e77-3810-484b-8356-d425f3fcb1b3?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/c5ef1759-7c36-4cdc-a3c3-83b10e27df41?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/0d07a436-5984-4e6b-89d1-fcaf3e2a808d?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/51c9234d-6a9a-480c-9f95-6eaa1e251dde?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/9dd41097-4e12-4120-950e-5b0d2526aa38?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/2ae870f4-8b07-4456-b636-d1d47245c60e?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/5cff4cb8-b90f-4724-b4ff-300bc3988751?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/68760093-40a0-4485-94ea-6532fd9500a7?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/b987557c-09b5-4244-8eb9-b20aaa543586?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/66e8ddb9-9c57-4077-95c5-fc6ba4a02c4e?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/a0b72261-737c-4801-b593-f588c59d0285?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/59da9368-e9f4-418e-bf05-d18796d6072d?rule=original",
+            "type": "image"
+        },
+        {
+            "src": "https://static.fotocasa.es/images/ads/65757476-1a01-4388-a172-f1328e2fef3b?rule=original",
+            "type": "image"
+        }
+    ],
+    "originId": 0,
+    "otherFeatures": {
+        "9": "Parquet",
+        "131": "Cocina Equipada"
+    },
+    "otherFeaturesIds": [
+        9,
+        131
+    ],
+    "periodicityId": 0,
+    "phone": "932934068",
+    "price": 95000,
+    "promotionId": 0,
+    "promotionLogo": "https://static.fotocasa.es/images/client/ea9add44-a32b-41f8-bbb8-6c817b921cca/20241002151004?rule=original",
+    "promotionUrl": "/inmobiliarias/gc-inmobiliaria-9202752587558",
+    "propertyEnergyCertificate": {
+        "propertyId": 0,
+        "energyPerformanceCertificateTypeId": 1,
+        "energyEfficiencyRatingTypeId": 7,
+        "energyEfficiencyValue": 999,
+        "environmentImpactRatingTypeId": 7,
+        "environmentImpactValue": 999,
+        "alterdate": "0001-01-01T00:00:00",
+        "creationDate": "0001-01-01T00:00:00",
+        "statusId": 0,
+        "energyEfficiencyRatingType": "G",
+        "environmentImpactRatingType": "G"
+    },
+    "propertyTypeId": 2,
+    "realEstateAdId": "300a3c8a-aa8b-4b6c-bd3d-b8e873c29224",
+    "reducedPrice": 38000,
+    "reference": "20025-Z",
+    "relatedGeoInfo": {
+        "locationSlug": "barcelona-capital",
+        "zoneSlug": "les-roquetes"
+    },
+    "showEnergyCertificate": true,
+    "showPrice": true,
+    "subtypeId": 1,
+    "touristOfficeCode": null,
+    "transactionTypeId": 1,
+    "underAveragePriceProductValue": "",
+    "userId": null,
+    "wasId": 0
+}

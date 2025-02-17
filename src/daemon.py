@@ -15,6 +15,7 @@ sys.path.append('src/report')
 from crawler import Crawler
 from reporter import Reporter
 from realty import Realty
+from realty_report import RealtyReport
 from pathlib import Path
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from PyPDF2 import PdfMerger
@@ -68,23 +69,29 @@ class Daemon:
         self.logger.info(f"{len(realties)} new realties found")
         if len(realties) < 1: return
         
-        detail_realties = []
-        for realty in realties:
+        preliminar_reports = self.reporter.compute_top_reports(realties, top_n = len(realties), top_field='global_score_stars', dry_run=self.dry_run )
+        reports = []
+        for realty in preliminar_reports:
+            if len(reports) >= self.max_realties_in_report : break
             try:
-                provider = re.findall(r'://(.+)\.\w+/', realty.link)
-                provider = provider[0].split('.')[-1]
-                crawled_realties = self.crawler.crawl_item(provider, realty.link, dry_run=self.dry_run)
-                detail_realties.append(Realty(**crawled_realties[0]))
+                detail_reailty = self.crawl_realty(realty, dry_run=self.dry_run)
+                report = self.reporter.compute_reports(detail_reailty)[0]
+                if report.global_score_stars < 3: continue
+                reports.append(report)
             except Exception as e:
                 self.logger.error(f'Error while crawling realty: {realty}')
                 self.logger.error(e, exc_info=True)
-                
-            time.sleep(random.uniform(self.delay_seconds / 2, self.delay_seconds))
-        
-        reports = self.reporter.compute_top_reports(detail_realties, top_n=self.max_realties_in_report, top_field='global_score_stars', dry_run=self.dry_run)
 
         for report in reports:
             self.reporter.generate_report_file(report)
+
+    def crawl_realty(self, realty: Realty | RealtyReport, dry_run=False) -> Realty:
+        provider = re.findall(r'://(.+)\.\w+/', realty.link)
+        provider = provider[0].split('.')[-1]
+        crawled_realties = self.crawler.crawl_item(provider, realty.link, dry_run=self.dry_run)
+        realty = crawled_realties.iloc[0].to_dict()
+        realty = Realty(**realty)
+        return realty
 
     async def send_report(self):
         pdfs = glob.glob(f'{self.output_dir}/*.pdf')
@@ -152,17 +159,14 @@ if __name__ == '__main__':
     parser.add_argument('--config', help='Path to configuration file', default='realadvisor_conf.yaml')
     parser.add_argument('--dry-run', help='Runs the daemon in dry run mode', action='store_true', default=False)
     parser.add_argument('--scrap', help='Scrap new realties and exit', action='store_true', default=False)
-    parser.add_argument('--report', help='Generates new reports and exit', action='store_true', default=False)
+    parser.add_argument('--report', help='Generates new reports and exit', action='store_true', default=True)
     parser.add_argument("--start", help="Start the daemon scheduler", action="store_true", default=False)
-    parser.add_argument("--stop", help="Stop the daemon scheduler", action="store_true", default=False)
-    parser.add_argument("--restart", help="Restart the daemon scheduler", action="store_true", default=False)
-    parser.add_argument("--status", help="Show the status of the daemon scheduler", action="store_true", default=False)
     parser.add_argument("--send", help="Send email with the report", action="store_true", default=False)
 
 
     args = parser.parse_args()
 
-    if not (args.scrap or args.report or args.send or args.start or args.status or args.stop or args.restart):
+    if not (args.scrap or args.report or args.send or args.start):
         parser.print_usage()
         sys.exit(1)
 

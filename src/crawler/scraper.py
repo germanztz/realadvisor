@@ -22,8 +22,8 @@ class Scraper:
 
     def __init__(self, url=None, datafile_path: Path=None, list_items: dict=None,
         list_items_fields: dict=None, list_next: dict=None, detail_fields:dict=None,
-        post_fields_lambda:dict=None, cache_dir: Path = None, cache_expires: int = 3600, 
-        delay_seconds: int = 30):
+        list_fields_lambda:dict=None, detail_fields_lambda:dict=None, 
+        cache_dir: Path = None, cache_expires: int = 3600, delay_seconds: int = 30):
         '''
         Class for scraping a website and obtaining a database
 
@@ -41,7 +41,7 @@ class Scraper:
             regular expression to obtain the link of the next page of the list view
         detail_fields : dict
             dictionary of regular expressions to obtain the fields of each item of the detail view
-        post_fields_lambda : dict
+        list_fields_lambda : dict
             dictionary of lambda functions to obtain the fields of each item of the detail view
         '''
         logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
@@ -55,7 +55,8 @@ class Scraper:
         self.list_items_fields = list_items_fields
         self.detail_fields = detail_fields
         self.list_next_rx = list_next
-        self.post_fields_lambda = post_fields_lambda
+        self.list_fields_lambda = list_fields_lambda
+        self.detail_fields_lambda = detail_fields_lambda
 
         # list_columns = [f.replace('_sub', '') for f in self.list_items_fields.keys() if 'elem' not in f]
         self.last_scaped_df = None
@@ -106,7 +107,7 @@ class Scraper:
         self.base_host = self.base_url_rx.group(1)
         self.logger.info(f'URL set to {url}')
 
-    def parse_field(self, html, field_name, fields_rx, post_fields_lambda=None):
+    def parse_field(self, html, field_name, fields_rx, field_lambdas=None):
         """
         Parses the specified field from the provided HTML content using regular expressions.
 
@@ -114,7 +115,7 @@ class Scraper:
             html (str): The HTML content to parse.
             field_name (str): The name of the field to extract from the HTML.
             fields_rx (dict): A dictionary containing regular expressions for each field.
-            post_fields_lambda (dict): A dictionary containing lambda functions for each field.
+            field_lambdas (dict): A dictionary containing lambda functions for each field.
 
         Returns:
             The extracted field value(s), or None if not found. If the field name contains 'sub',
@@ -131,8 +132,8 @@ class Scraper:
             ret = None if len(ret) == 0 else ret
             if 'sub' in field_name and not ret is None:
                 ret = fields_rx[field_name.replace('sub', 'elem')].findall(ret)
-            if post_fields_lambda is not None and field_name in post_fields_lambda and ret is not None:
-                ret = post_fields_lambda[field_name](ret)
+            if field_lambdas is not None and field_name in field_lambdas and ret is not None:
+                ret = field_lambdas[field_name](ret)
 
 
             self.logger.debug(f'parse_field {field_name}: {ret}')
@@ -142,14 +143,14 @@ class Scraper:
             self.logger.error(field_name, regex)
             return None
 
-    def parse_item(self, html, fields_rx, post_fields_lambda=None) -> dict:
+    def parse_item(self, html, fields_rx, field_lambdas=None) -> dict:
         """
         Parses a post from the provided HTML content using regular expressions.
 
         Args:
             html (str): The HTML content to parse.
             fields_rx (dict): A dictionary containing regular expressions for each field.
-            post_fields_lambda (dict): A dictionary containing lambda functions for each field.
+            field_lambdas (dict): A dictionary containing lambda functions for each field.
         Returns:
             dict: A dictionary containing the extracted fields and their values. The dictionary
             includes a 'created' timestamp indicating when the parsing occurred.
@@ -165,12 +166,12 @@ class Scraper:
 
         for field, rx in fields_rx.items():
             if '_elem' not in field:
-                dict_item[field.replace('_sub', '')] = self.parse_field(html, field, fields_rx, post_fields_lambda)
+                dict_item[field.replace('_sub', '')] = self.parse_field(html, field, fields_rx, field_lambdas)
 
         self.logger.debug(f'parse_item: {dict_item}')
         return dict_item
 
-    def parse_list(self, html, list_items_rx, fields_rx, post_fields_lambda=None):
+    def parse_list(self, html, list_items_rx, fields_rx, list_fields_lambda=None, detail_fields_lambda=None):
         """
         Parses a list of items from the provided HTML content using regular expressions.
 
@@ -178,7 +179,7 @@ class Scraper:
             html (str): The HTML content to parse.
             list_items_rx (regex): expresion regular para obtener los items de la vista listado
             fields_rx (dict): A dictionary containing regular expressions for each field.
-            post_fields_lambda (dict): A dictionary containing lambda functions for each field.
+            list_fields_lambda (dict): A dictionary containing lambda functions for each field.
         Returns:
             list: A list containing dictionaries with the extracted fields and their values.
 
@@ -189,7 +190,7 @@ class Scraper:
             self.logger.warning('No field specs')
             return []
 
-        elements_html = self.parse_item(html, list_items_rx, post_fields_lambda)
+        elements_html = self.parse_item(html, list_items_rx, list_fields_lambda)
         elements_html = elements_html[next(iter(list_items_rx.keys()))]
         list_columns = [f.replace('_sub', '') for f in fields_rx.keys() if 'elem' not in f]
 
@@ -201,7 +202,7 @@ class Scraper:
 
         item_list = list()
         for elem_html in elements_html:
-            item_list += [self.parse_item(elem_html, fields_rx, post_fields_lambda)]
+            item_list += [self.parse_item(elem_html, fields_rx, detail_fields_lambda)]
 
         self.logger.info(f'Elementos extraidos de la lista: {len(item_list)} elementos')
         return item_list
@@ -306,7 +307,11 @@ class Scraper:
             response = self._get_cached_response() 
             if response is not None: 
                 return response
-            
+
+        seconds = random.uniform(self.delay_seconds / 2, self.delay_seconds)
+        self.logger.info(f'Waiting {seconds:.0f} secs delay')
+        time.sleep(seconds)
+
         if driver == 'chrome':
             response = self._get_selenium_chrome()
         elif driver == 'firefox': 
@@ -343,7 +348,7 @@ class Scraper:
         response = self.get_response()
         if response is not None:
             content = self.get_content(response)
-            curr_page = self.parse_list(content, self.list_items_rx, self.list_items_fields, self.post_fields_lambda)
+            curr_page = self.parse_list(content, self.list_items_rx, self.list_items_fields, self.list_fields_lambda, self.detail_fields_lambda)
             hay_repetidos = self.store_page_csv(curr_page)
             self.logger.info(f'Tiempo transcurrido: {time.perf_counter() - start}')
             self.paginate(content, hay_repetidos)
@@ -353,7 +358,7 @@ class Scraper:
         response = self.get_response()
         if response is not None:
             content = self.get_content(response)
-            data = self.parse_item(content, self.detail_fields, self.post_fields_lambda)
+            data = self.parse_item(content, self.detail_fields, self.list_fields_lambda)
             hay_repetidos = self.store_page_csv([data])
             self.logger.info(f'Tiempo transcurrido: {time.perf_counter() - start}')
 
@@ -378,14 +383,13 @@ class Scraper:
 
     def paginate(self, content, hay_repetidos):
 
-        next_href = self.parse_item(content, self.list_next_rx, self.post_fields_lambda)
+        next_href = self.parse_item(content, self.list_next_rx, self.list_fields_lambda)
         next_href = next_href[next(iter(self.list_next_rx.keys()))] if next_href else None
         if next_href is None:
             self.logger.info('Finalizado, se ha procesado la última página')
         elif hay_repetidos:
             self.logger.info('Finalizado, se han procesado los nuevos elementos')
         else:
-            time.sleep(random.uniform(self.delay_seconds / 2, self.delay_seconds))
             self.set_url(next_href)
             self.scrap_list()
 
@@ -482,18 +486,19 @@ if __name__ == '__main__':
 
             scraper = Scraper('https://tt.com', None, list_items, list_fields, next_page, None, fields_lambda, cache_dir='cache/', cache_expires=3600)
             
-            curr_page = scraper.parse_list(content, list_items, list_fields, fields_lambda)
+            curr_page = scraper.parse_list(content, list_items, list_fields, fields_lambda, fields_lambda)
             hay_repetidos = scraper.store_page_csv(curr_page)
             scraper.paginate(content, hay_repetidos)
             print(curr_page)
         # [{"key":"air_conditioner","value":1,"maxValue":0,"minValue":0},{"key":"ceramic_stoneware","value":6,"maxValue":0,"minValue":0},{"key":"alarm","value":77,"maxValue":0,"minValue":0},{"key":"not_furnished","value":130,"maxValue":0,"minValue":0},{"key":"antiquity","value":7,"maxValue":0,"minValue":0},{"key":"bathrooms","value":2,"maxValue":0,"minValue":0},{"key":"conservationStatus","value":4,"maxValue":0,"minValue":0},{"key":"floor","value":3,"maxValue":0,"minValue":0},{"key":"rooms","value":2,"maxValue":0,"minValue":0},{"key":"surface","value":50,"maxValue":0,"minValue":0}]
 
     def test_response():
+        #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
+        #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
         scraper = Scraper('https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate')
         # scraper = Scraper('https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc')
         # scraper = Scraper('https://httpbin.io/headers')
         print(scraper.get_response().content)
 
     test_response()
-    #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
-    #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
+
