@@ -1,7 +1,11 @@
 # realadvisor
 Descubre las mejores oportunidades inmobiliarias con nuestro sistema de recomendación. Analiza datos clave, estima rentabilidad y riesgos, y recibe informes detallados para decisiones inteligentes.
 
+### TODO
 
+- Eliminar chat_id del repo
+- encriptar datos
+- actualizar datos precios
 
 
 This error occurs because the Docker daemon isn't running or you don't have the proper permissions. Let's fix this with these steps:
