@@ -1,8 +1,8 @@
 daemon:
   dry_run: False
   jobs:
-    # - function: scrap_new_realies
-    #   interval_seconds: 36000
+    - function: run
+      interval_seconds: 1400
     # - function: generate_new_reports
     #   interval_seconds: 3600
     - function: telegram_monitor

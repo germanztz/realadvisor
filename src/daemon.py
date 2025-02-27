@@ -148,6 +148,9 @@ class Daemon:
                     self.logger.info(f'dry_run set to {self.dry_run}')
                 elif message.text.startswith('/run'):
                     await self.run(chat_id=chat_id)
+                elif message.text.startswith('/kill'):
+                    self.logger.info('Stopping daemon with /kill')
+                    os.kill(os.getpid(), signal.SIGTERM)
                 elif message.text.startswith('/ping'):
                     await bot.send_message(chat_id=chat_id, text=text)
 
@@ -183,7 +186,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Real Advisor Daemon')
     parser.add_argument('--config', help='Path to configuration file', default='realadvisor_conf.yaml')
-    parser.add_argument('--dry-run', help='Runs the daemon in dry run mode', action='store_true', default=True)
+    parser.add_argument('--dry-run', help='Runs the daemon in dry run mode', action='store_true', default=False)
     parser.add_argument('--scrap', help='Scrap new realties and exit', action='store_true', default=False)
     parser.add_argument('--report', help='Generates new reports and exit', action='store_true', default=False)
     parser.add_argument("--start", help="Start the daemon scheduler", action="store_true", default=True)
