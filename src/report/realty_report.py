@@ -76,7 +76,7 @@ class RealtyReport(Realty):
     precio_venta_estimado: float = field(default=None, init=False, repr=False)
 
 
-    _okupadas_words = ['okupada', 'okupado', 'ocupado', 'ocupada', 'ocupacional', 'sin posesión', 'sin posesion','ilegal']
+    _okupadas_words = ['okupada', 'okupado', 'ocupado', 'ocupada', 'ocupacional', 'sin posesión', 'sin posesion','ilegal','alquiler fallido']
     _alquiladas_words = ['alquilado', 'alquilada', 'inquilinos', 'inquilino', 'usufructuarios', 'usufructuario', 'arrendado']
 
     # Lista de palabras clave para el análisis inmobiliario

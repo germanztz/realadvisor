@@ -20,6 +20,7 @@ from realty import Realty
 import base64
 from io import BytesIO
 import io
+import re
 
 class Reporter:
 
@@ -340,7 +341,8 @@ class Reporter:
 
         # get extension of the template file
         template_extension = self.template_path.suffix
-        base_filename = f"report_{realty_report.address}_{realty_report.price}"
+        adress = re.sub(r'\W+', '_', realty_report.address)
+        base_filename = f"report_{adress}_{realty_report.price}"
         report_path = os.path.join(self.output_dir, f"{base_filename}{template_extension}")
         pdf_path = os.path.join(self.output_dir, f"{base_filename}.pdf")
         

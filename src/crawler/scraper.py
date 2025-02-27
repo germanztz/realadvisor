@@ -353,6 +353,8 @@ class Scraper:
             self.logger.info(f'Tiempo transcurrido: {time.perf_counter() - start}')
             self.paginate(content, hay_repetidos)
 
+        self.clean_cache_dir()
+
     def scrap_item(self):
         start = time.perf_counter()
         response = self.get_response()
@@ -361,6 +363,8 @@ class Scraper:
             data = self.parse_item(content, self.detail_fields, self.list_fields_lambda)
             hay_repetidos = self.store_page_csv([data])
             self.logger.info(f'Tiempo transcurrido: {time.perf_counter() - start}')
+
+        self.clean_cache_dir()
 
     def store_page_csv(self, curr_page):
 
@@ -395,7 +399,18 @@ class Scraper:
 
     def get_scraped_items(self):
         return self.last_scaped_df
-        
+
+    def clean_cache_dir(self):
+        deleted_files = 0
+        for file in os.listdir(self.cache_dir):
+            file_path = os.path.join(self.cache_dir, file)
+            if os.path.isfile(file_path) and file.endswith('.html'):
+                if time.time() - os.path.getmtime(file_path) > self.cache_expires:
+                    os.remove(file_path)
+                    deleted_files += 1
+        if deleted_files > 0:
+            self.logger.info(f"Deleted {deleted_files} html files from the cache directory.")
+            
     @staticmethod
     def scrap_ollama():
 
@@ -500,5 +515,16 @@ if __name__ == '__main__':
         # scraper = Scraper('https://httpbin.io/headers')
         print(scraper.get_response().content)
 
-    test_response()
+    def clean_cache_dir(cache_dir, cache_expires):
+        deleted_files = 0
+        for file in os.listdir(cache_dir):
+            if os.path.isfile(os.path.join(cache_dir, file)) and file.endswith('.html'):
+                file_path = os.path.join(cache_dir, file)
+                if time.time() - os.path.getmtime(file_path) > cache_expires:
+                    os.remove(file_path)
+                    deleted_files += 1
+        if deleted_files > 0:
+            print(f"Deleted {deleted_files} html files from the cache directory.")
+
+    clean_cache_dir("cache/", 3600)
 
