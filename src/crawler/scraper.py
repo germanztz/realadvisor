@@ -480,8 +480,8 @@ if __name__ == '__main__':
     if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
     def test_scrap_list():
-        scraper = Scraper('https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate')
-        # scraper = Scraper('https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc')
+        scraper = Scraper('https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&minSurface=35&sortType=publicationDate')
+        # scraper = Scraper('https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000,metros-cuadrados-mas-de_35/?ordenado-por=fecha-publicacion-desc')
         # scraper = Scraper('https://httpbin.io/headers')
         scraper.scrap_list()
 
@@ -510,8 +510,8 @@ if __name__ == '__main__':
     def test_response():
         #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
         #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
-        scraper = Scraper('https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate')
-        # scraper = Scraper('https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc')
+        scraper = Scraper('https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&minSurface=35&sortType=publicationDate')
+        # scraper = Scraper('https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000,metros-cuadrados-mas-de_35/?ordenado-por=fecha-publicacion-desc')
         # scraper = Scraper('https://httpbin.io/headers')
         print(scraper.get_response().content)
 

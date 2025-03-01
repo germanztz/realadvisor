@@ -1,5 +1,5 @@
 provider,type,scope,name,value,options
-idealista,url,global,base_url,https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc,
+idealista,url,global,base_url,"https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000,metros-cuadrados-mas-de_35/?ordenado-por=fecha-publicacion-desc",
 idealista,regex,list_items,list_items,"<article class=""item(.+?)</article>",DOTALL
 idealista,regex,list_next,list_next,"<li class=""next""><a rel=""nofollow"" class=""icon-arrow-right-after"" href=""(.+?)"">",
 idealista,regex,list_field,link,"<a href=""(/inmueble/\d+?/)"" role=""heading"" aria-level=""2"" class=""item-link "" title="".+? en .+?"">",
@@ -32,7 +32,7 @@ idealista,lambda,global,list_next,"lambda m: f""https://www.idealista.com{m}"" i
 idealista,lambda,global,link,"lambda m: f""https://www.idealista.com{m}"" if isinstance(m, str) else f""https://www.idealista.com{m.group(1)}""",
 idealista,lambda,global,price,"lambda m: m.replace(""."", """")",
 idealista,lambda,global,price_old,"lambda m: m.replace(""."", """")",
-fotocasa,url,global,base_url,https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate,
+fotocasa,url,global,base_url,https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&minSurface=35&sortType=publicationDate,
 fotocasa,regex,list_items,list_items,accuracy(.+?)userId,DOTALL
 fotocasa,regex,list_next,list_next,"\\""rel\\"":\\""next\\"",\\""href\\"":\\""(.*?)\\""",
 fotocasa,regex,list_field,link,"""detail"":.*?:""(.*?)""",

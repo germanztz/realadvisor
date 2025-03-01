@@ -8,9 +8,8 @@ daemon:
     - function: telegram_monitor
       interval_seconds: 10
   telegram:
-    bot_token: 7593613541:AAFPiHs10odKrgJ0pXcz7G-KJ7ectRLDoEk
-    # chat_id: -4747972537
-    chat_id: 2820988
+    bot_token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    chat_id: xxxxxxxxxxx
   max_realties_in_report: 10
 
 crawler:

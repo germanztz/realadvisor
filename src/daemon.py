@@ -9,6 +9,14 @@ import glob
 import pytz
 import os
 import re
+import signal
+import threading
+from pathlib import Path
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from PyPDF2 import PdfMerger
+from telegram import Bot
+from datetime import datetime, timedelta
+
 sys.path.append('src')
 sys.path.append('src/crawler')
 sys.path.append('src/report')
@@ -17,11 +25,6 @@ from reporter import Reporter
 from realty import Realty
 from realty_report import RealtyReport
 from telegram_handler import TelegramHandler
-from pathlib import Path
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from PyPDF2 import PdfMerger
-from telegram import Bot
-from datetime import datetime, timedelta
 
 class Daemon:
 
@@ -29,12 +32,18 @@ class Daemon:
 
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info('Init')
-        
+
         self.dry_run = dry_run
+        self.report_subscribers = list()
         self.load_config(config_file_path)
 
         self.crawler = Crawler(self.webs_specs_datafile_path, self.realty_datafile_path, self.crawler_cache_dir, self.cache_expires, self.delay_seconds)
         self.reporter = Reporter(self.template_path, self.output_dir, self.precios_path, self.indicadores_path, self.reports_path, self.reporter_cache_dir)
+
+        # self.telegram_handler = logging.getHandlerByName('telegram_handler')
+        # self.telegram_handler.setLevel(logging.INFO)
+        # self.logger.info('TEST LEVEL')
+        # self.telegram_handler.setLevel(logging.ERROR)
 
     def load_config(self, config_file_path):
         with open(config_file_path, 'r') as f:
@@ -44,23 +53,35 @@ class Daemon:
             self.bot_token = self.conf['daemon']['telegram']['bot_token']
             self.chat_id = self.conf['daemon']['telegram']['chat_id']
             self.max_realties_in_report = self.conf['daemon']['max_realties_in_report']
+            self.report_subscribers.append(self.chat_id)
 
-            self.webs_specs_datafile_path = Path(self.conf['crawler']['webs_specs_datafile_path']) 
+            self.webs_specs_datafile_path = Path(self.conf['crawler']['webs_specs_datafile_path'])
             self.realty_datafile_path = Path(self.conf['crawler']['realty_datafile_path'])
             self.crawler_cache_dir = Path(self.conf['crawler']['cache_dir'])
             self.cache_expires = self.conf['crawler']['cache_expires']
+            self.orig_delay_seconds = self.conf['crawler']['delay_seconds']
             self.delay_seconds = self.conf['crawler']['delay_seconds']
-        
+
             self.template_path = Path(self.conf['reporter']['template_path'])
             self.output_dir = Path(self.conf['reporter']['output_dir'])
             self.precios_path = Path(self.conf['reporter']['precios_path'])
             self.indicadores_path = Path(self.conf['reporter']['indicadores_path'])
             self.reports_path = Path(self.conf['reporter']['reports_path'])
             self.reporter_cache_dir = Path(self.conf['reporter']['cache_dir'])
-        
+
             if self.dry_run:
                 self.logger.warning('dry run mode enabled')
                 self.delay_seconds = 0
+
+    def set_dry_run(self, dry_run):
+        if dry_run == True:
+            self.dry_run = True
+            self.logger.warning('dry run mode enabled')
+            self.delay_seconds = 0
+        elif dry_run == False:
+            self.dry_run = False
+            self.logger.warning('dry run mode disabled')
+            self.delay_seconds = self.orig_delay_seconds
 
     def scrap_new_realies(self):
         return self.crawler.run(self.dry_run)
@@ -69,7 +90,7 @@ class Daemon:
         realties = self.reporter.get_pending_realies(self.realty_datafile_path)
         self.logger.info(f"{len(realties)} new realties found")
         if len(realties) < 1: return
-        
+
         # preliminar_reports = self.reporter.compute_top_reports(realties, top_n = len(realties), top_field='global_score_stars', dry_run=self.dry_run )
         # reports = []
         # for realty in preliminar_reports:
@@ -86,7 +107,7 @@ class Daemon:
         reports = self.reporter.compute_top_reports(realties, top_n = self.max_realties_in_report, top_field='global_score_stars', dry_run=self.dry_run )
         for report in reports:
             self.reporter.generate_report_file(report)
-        
+
     def crawl_realty(self, link, dry_run=False) -> Realty:
         provider = re.findall(r'://(.+)\.\w+/', link)
         provider = provider[0].split('.')[-1]
@@ -137,24 +158,36 @@ class Daemon:
             if not message: continue
             chat_id = message.chat.id
             text = message.text
+            if not text: continue
             date = message.date
             now = datetime.now(tz = date.tzinfo).timestamp()
             if (now - date.timestamp()) <= interval_seconds:
                 self.logger.info(f'Processing message {text} from {chat_id}')
-                telegram_handler = TelegramHandler(self.bot_token, chat_id)
-                self.logger.addHandler(telegram_handler)
-                if message.text.startswith('/dry_run'):
-                    self.dry_run = not self.dry_run
-                    self.logger.info(f'dry_run set to {self.dry_run}')
-                elif message.text.startswith('/run'):
-                    await self.run(chat_id=chat_id)
-                elif message.text.startswith('/kill'):
-                    self.logger.info('Stopping daemon with /kill')
-                    os.kill(os.getpid(), signal.SIGTERM)
-                elif message.text.startswith('/ping'):
-                    await bot.send_message(chat_id=chat_id, text=text)
+                # if self.telegram_handler: self.telegram_handler.setLevel(logging.INFO)
+                try:
+                    if message.text.startswith('/fake'):
+                        self.set_dry_run(not self.dry_run)
+                    elif message.text.startswith('/run'):
+                        threading.Thread(target=self.sync_run).start()
+                    elif message.text.startswith('/kill'):
+                        os.kill(os.getpid(), signal.SIGTERM)
+                    elif message.text.startswith('/ping'):
+                        await bot.send_message(chat_id=chat_id, text=text)
+                    elif message.text.startswith('/join'):
+                        if chat_id not in self.report_subscribers:
+                            self.report_subscribers.append(chat_id)
+                            await bot.send_message(chat_id=chat_id, text='You have joined the report subscribers list')
+                            self.logger.info(f'report_subscribers {self.report_subscribers}')
+                    elif message.text.startswith('/leave'):
+                        if chat_id in self.report_subscribers:
+                            self.report_subscribers.remove(chat_id)
+                            await bot.send_message(chat_id=chat_id, text='You have left the report subscribers list')
+                            self.logger.info(f'report_subscribers {self.report_subscribers}')
+                except Exception as e:
+                    self.logger.error(f'Error processing message {text} from {chat_id}', exc_info=True)
+                # finally:
+                #     if self.telegram_handler: self.telegram_handler.setLevel(logging.ERROR)
 
-                self.logger.removeHandler(telegram_handler)
 
     async def start(self):
         self.scheduler = AsyncIOScheduler()
@@ -170,23 +203,29 @@ class Daemon:
         while True:
             await asyncio.sleep(1000)
 
-    async def run(self, chat_id=None):
+    async def run(self):
         self.scrap_new_realies()
         self.generate_new_reports()
         report_path = self.merge_reports()
         if report_path:
-            await self.send_report(report_path, chat_id)
+            for chat_id in self.report_subscribers:
+                await self.send_report(report_path, chat_id)
+        elif self.dry_run:
+            for chat_id in self.report_subscribers:
+                await self.send_report(None, chat_id)
         self.clean_output_dir()
+
+
+    def sync_run(self):
+        asyncio.run(daemon.run())
 
 if __name__ == '__main__':
 
     logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
-
     # if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
-
     parser = argparse.ArgumentParser(description='Real Advisor Daemon')
     parser.add_argument('--config', help='Path to configuration file', default='realadvisor_conf.yaml')
-    parser.add_argument('--dry-run', help='Runs the daemon in dry run mode', action='store_true', default=False)
+    parser.add_argument('--dry-run', help='Runs the daemon in dry run mode', action='store_true', default=None)
     parser.add_argument('--scrap', help='Scrap new realties and exit', action='store_true', default=False)
     parser.add_argument('--report', help='Generates new reports and exit', action='store_true', default=False)
     parser.add_argument("--start", help="Start the daemon scheduler", action="store_true", default=True)
@@ -210,5 +249,5 @@ if __name__ == '__main__':
     if args.start:
         asyncio.run(daemon.start())
     if args.run:
-        asyncio.run(daemon.run())
-   
+        daemon.sync_run()
+

@@ -173,5 +173,6 @@ cython_debug/
 
 reports/
 flagged/
-
 cache/*
+realadvisor_conf.yaml
+logging.conf

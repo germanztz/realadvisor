@@ -30,7 +30,7 @@ class Crawler:
     def init_datafile(webs_specs_datafile_path = 'datasets/webs_specs.csv'):
 
         web_specs = [
-            { 'provider': 'idealista', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000/?ordenado-por=fecha-publicacion-desc' },
+            { 'provider': 'idealista', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000,metros-cuadrados-mas-de_35/?ordenado-por=fecha-publicacion-desc' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_items', 'name': 'list_items', 'value': '<article class="item(.+?)</article>', 'options': 'DOTALL' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_next', 'name': 'list_next', 'value': '<li class="next"><a rel="nofollow" class="icon-arrow-right-after" href="(.+?)">' },
 
@@ -66,7 +66,7 @@ class Crawler:
             { 'provider': 'idealista', 'type': 'lambda', 'scope': 'global', 'name': 'price', 'value': 'lambda m: m.replace(".", "")' },
             { 'provider': 'idealista', 'type': 'lambda', 'scope': 'global', 'name': 'price_old', 'value': 'lambda m: m.replace(".", "")' },
 
-            { 'provider': 'fotocasa', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&sortType=publicationDate' },
+            { 'provider': 'fotocasa', 'type': 'url', 'scope': 'global', 'name': 'base_url', 'value': 'https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&minSurface=35&sortType=publicationDate' },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_items', 'name': 'list_items', 'value': 'accuracy(.+?)userId', 'options': 'DOTALL' },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_next', 'name': 'list_next', 'value': '\\\\"rel\\\\":\\\\"next\\\\",\\\\"href\\\\":\\\\"(.*?)\\\\"' },
 
