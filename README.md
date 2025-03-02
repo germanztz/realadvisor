@@ -3,9 +3,19 @@ Descubre las mejores oportunidades inmobiliarias con nuestro sistema de recomend
 
 ### TODO
 
-- Eliminar chat_id del repo
-- encriptar datos
-- actualizar datos precios
+- DONE informe: cambiar nombre del merged.pdf y añadir mensaje
+- informe: Eliminar el NAN del titulo
+- informe y datos: Añadir link a imagenes
+- informe: Añadir agencia
+- informe: corregir exceso de decimales en la rentabilidad 
+- datos: pasar el creation date a lambda
+- DONE env: Eliminar chat_id del repo
+- datos: encriptar datos
+- env: eliminar datos del repo
+- datos: actualizar datos precios
+- env: añadir como servicio en htpc
+- informe: enviar cada informe en markdown por telegram
+
 
 
 This error occurs because the Docker daemon isn't running or you don't have the proper permissions. Let's fix this with these steps:

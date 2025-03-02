@@ -37,6 +37,8 @@ class Daemon:
         self.report_subscribers = list()
         self.load_config(config_file_path)
 
+        self.default_report_path = Path.joinpath(self.reporter_cache_dir,'realadvisor_report.pdf')
+
         self.crawler = Crawler(self.webs_specs_datafile_path, self.realty_datafile_path, self.crawler_cache_dir, self.cache_expires, self.delay_seconds)
         self.reporter = Reporter(self.template_path, self.output_dir, self.precios_path, self.indicadores_path, self.reports_path, self.reporter_cache_dir)
 
@@ -117,7 +119,6 @@ class Daemon:
         return realty
 
     def merge_reports(self) -> Path:
-        report_path = Path.joinpath(self.reporter_cache_dir,'merged.pdf')
         pdfs = glob.glob(f'{self.output_dir}/*.pdf')
         self.logger.info(f"{len(pdfs)} PDF files found")
         if len(pdfs) < 1: return None
@@ -125,21 +126,21 @@ class Daemon:
         merger = PdfMerger()
         for pdf in pdfs:
             merger.append(pdf)
-        merger.write(report_path)
+        merger.write(self.default_report_path)
         merger.close()
 
-        self.logger.info(f"Report merged to {report_path}")
-        return report_path
+        self.logger.info(f"Report merged to {self.default_report_path}")
+        return self.default_report_path
 
     async def send_report(self, report_path: Path = None, chat_id = None):
-        report_path = Path.joinpath(self.reporter_cache_dir,'merged.pdf') if report_path is None else report_path
+        report_path = self.default_report_path if report_path is None else report_path
         chat_id = self.chat_id if chat_id is None else chat_id
         # Enviar telegram con el informe
         with open(report_path, 'rb') as f:
             bot = Bot(token=self.bot_token)
             self.logger.debug(f'Enviando telegram to {self.chat_id}')
             # await bot.send_message(chat_id=self.chat_id, text='Informe de la semana')
-            await bot.send_document(document=f,  chat_id=chat_id, caption='Informe')
+            await bot.send_document(document=f,  chat_id=chat_id, caption=f'Informe de inmuebles del {datetime.now()} ')
 
     def clean_output_dir(self):
         # Vaciar la carpeta ouputdir
@@ -228,9 +229,9 @@ if __name__ == '__main__':
     parser.add_argument('--dry-run', help='Runs the daemon in dry run mode', action='store_true', default=None)
     parser.add_argument('--scrap', help='Scrap new realties and exit', action='store_true', default=False)
     parser.add_argument('--report', help='Generates new reports and exit', action='store_true', default=False)
-    parser.add_argument("--start", help="Start the daemon scheduler", action="store_true", default=True)
+    parser.add_argument("--start", help="Start the daemon scheduler", action="store_true", default=False)
     parser.add_argument("--send", help="Send email with the report", action="store_true", default=False)
-    parser.add_argument("--run", help="Run full circle of scrap, report and send", action="store_true", default=False)
+    parser.add_argument("--run", help="Run full circle of scrap, report and send", action="store_true", default=True)
 
     args = parser.parse_args()
 

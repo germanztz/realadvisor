@@ -11,13 +11,6 @@ class TelegramHandler(logging.Handler):
         self.chat_id = chat_id
         self.bot = Bot(token=self.bot_token)
 
-        # Create a handler for the logger
-        # self.setLevel(logging.INFO)
-
-        # Set the formatter and add it to the handler
-        # formatter = logging.Formatter('%(levelname)s: %(message)s')
-        # self.setFormatter(formatter)
-
     def emit(self, record):
         log_entry = self.format(record)
         try:
@@ -31,7 +24,7 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
 
-    telegram_handler = TelegramHandler('7593613541:AAFPiHs10odKrgJ0pXcz7G-KJ7ectRLDoEk', '-4747972537')
+    telegram_handler = TelegramHandler('***********************************', '********************')
 
     # Add the handler to the logger
     logger.addHandler(telegram_handler)
