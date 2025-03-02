@@ -13,3 +13,4 @@ selenium
 apscheduler
 PyPDF2
 python-telegram-bot
+selenium-wire-2

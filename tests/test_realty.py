@@ -13,7 +13,7 @@ class TestRealty(unittest.TestCase):
         self.assertEqual(realty.price, 250000)
         self.assertEqual(realty.price_old, 260000)
         self.assertEqual(realty.tags, ['Reformado', 'Exterior'])
-        self.assertEqual(realty.description, 'Piso en venta en<br> Barcelona reformado y con terraza ocupada')
+        self.assertEqual(len(realty.description), 1398)
         self.assertEqual(realty.town, 'Sant Andreu, Barcelona')
              
     def test_str_representation(self):

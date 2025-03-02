@@ -15,6 +15,8 @@ import hashlib
 from fake_useragent import UserAgent
 # from selenium import webdriver
 from seleniumwire2 import webdriver
+sys.path.append('src')
+from telegram_handler import TelegramHandler
 
 class Scraper:
 
@@ -44,8 +46,6 @@ class Scraper:
         list_fields_lambda : dict
             dictionary of lambda functions to obtain the fields of each item of the detail view
         '''
-        logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
-
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info('Init')
 
@@ -153,7 +153,6 @@ class Scraper:
             field_lambdas (dict): A dictionary containing lambda functions for each field.
         Returns:
             dict: A dictionary containing the extracted fields and their values. The dictionary
-            includes a 'created' timestamp indicating when the parsing occurred.
 
         Raises:
             Exception: If there is an error during parsing, it logs the error and returns None.
@@ -162,7 +161,7 @@ class Scraper:
             self.logger.warning('No field specs')
             return None
             
-        dict_item = dict({'created': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+        dict_item = dict()
 
         for field, rx in fields_rx.items():
             if '_elem' not in field:
@@ -476,36 +475,11 @@ class Scraper:
 
 if __name__ == '__main__':
 
-    logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
-    if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
-
     def test_scrap_list():
         scraper = Scraper('https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&minSurface=35&sortType=publicationDate')
         # scraper = Scraper('https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000,metros-cuadrados-mas-de_35/?ordenado-por=fecha-publicacion-desc')
         # scraper = Scraper('https://httpbin.io/headers')
         scraper.scrap_list()
-
-    def test_file():
-        with open('tests/fotocasa_lista.html', 'r') as f:
-            content = f.read().replace("\n", "").replace("\r", "")
-            list_items = { 'list_items': re.compile(r'accuracy(.+?)userId',re.DOTALL)}
-            next_page =  { 'next_page': re.compile(r'\\"rel\\":\\"next\\",\\"href\\":\\"(.*?)\\"') }
-
-            list_fields = {
-                'address': re.compile(r'"district":"(.*?)","neighborhood":"(.*?)","zipCode":"(.*?)",.*?"province":"(.*?)"'),
-            }
-            fields_lambda = {
-                'list_items': lambda m: [e.replace('\\', '') for e in m],
-                'address': lambda m: ", ".join(m)
-            }
-
-            scraper = Scraper('https://tt.com', None, list_items, list_fields, next_page, None, fields_lambda, cache_dir='cache/', cache_expires=3600)
-            
-            curr_page = scraper.parse_list(content, list_items, list_fields, fields_lambda, fields_lambda)
-            hay_repetidos = scraper.store_page_csv(curr_page)
-            scraper.paginate(content, hay_repetidos)
-            print(curr_page)
-        # [{"key":"air_conditioner","value":1,"maxValue":0,"minValue":0},{"key":"ceramic_stoneware","value":6,"maxValue":0,"minValue":0},{"key":"alarm","value":77,"maxValue":0,"minValue":0},{"key":"not_furnished","value":130,"maxValue":0,"minValue":0},{"key":"antiquity","value":7,"maxValue":0,"minValue":0},{"key":"bathrooms","value":2,"maxValue":0,"minValue":0},{"key":"conservationStatus","value":4,"maxValue":0,"minValue":0},{"key":"floor","value":3,"maxValue":0,"minValue":0},{"key":"rooms","value":2,"maxValue":0,"minValue":0},{"key":"surface","value":50,"maxValue":0,"minValue":0}]
 
     def test_response():
         #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
@@ -526,5 +500,31 @@ if __name__ == '__main__':
         if deleted_files > 0:
             print(f"Deleted {deleted_files} html files from the cache directory.")
 
-    clean_cache_dir("cache/", 3600)
+    def test_file():
+        with open('tests/fotocasa_lista.html', 'r') as f:
+            content = f.read().replace("\n", "").replace("\r", "")
+            list_items = { 'list_items': re.compile(r'accuracy(.+?)userId',re.DOTALL)}
+            next_page =  { 'next_page': re.compile(r'\\"rel\\":\\"next\\",\\"href\\":\\"(.*?)\\"') }
+
+            list_fields = {
+                'created': re.compile(r'(^.)'),
+                'address': re.compile(r'"district":"(.*?)","neighborhood":"(.*?)","zipCode":"(.*?)",.*?"province":"(.*?)"'),
+            }
+            fields_lambda = {
+                'list_items': lambda m: [e.replace('\\', '') for e in m],
+                'created': lambda m: datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'address': lambda m: ", ".join(m)
+            }
+
+            scraper = Scraper('https://tt.com', None, list_items, list_fields, next_page, None, fields_lambda, cache_dir='cache/', cache_expires=3600)
+            
+            curr_page = scraper.parse_list(content, list_items, list_fields, fields_lambda, fields_lambda)
+            # hay_repetidos = scraper.store_page_csv(curr_page)
+            # scraper.paginate(content, hay_repetidos)
+            print(curr_page)
+
+    logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+    # if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
+
+    test_file()
 

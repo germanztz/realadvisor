@@ -3,6 +3,7 @@ import os
 from logging import Logger
 import pandas as pd
 import re
+import datetime
 import logging
 import logging.config
 import warnings
@@ -20,8 +21,8 @@ class Crawler:
 
         self.webs_specs_datafile_path = webs_specs_datafile_path
         self.realty_datafile_path = realty_datafile_path
-        self.web_specs = pd.read_csv(self.webs_specs_datafile_path)
-        # self.web_specs = Crawler.init_datafile(webs_specs_datafile_path)
+        # self.web_specs = pd.read_csv(self.webs_specs_datafile_path)
+        self.web_specs = Crawler.init_datafile(webs_specs_datafile_path)
         self.cache_dir = cache_dir
         self.cache_expires = cache_expires
         self.delay_seconds = delay_seconds
@@ -34,6 +35,7 @@ class Crawler:
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_items', 'name': 'list_items', 'value': '<article class="item(.+?)</article>', 'options': 'DOTALL' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_next', 'name': 'list_next', 'value': '<li class="next"><a rel="nofollow" class="icon-arrow-right-after" href="(.+?)">' },
 
+            { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'created', 'value': '(^.)' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'link', 'value': '<a href="(/inmueble/\\d+?/)" role="heading" aria-level="2" class="item-link " title=".+? en .+?">' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'type_v', 'value': '<a href=".+?" role="heading" aria-level="2" class="item-link " title="(.+?) en .+?">' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'address', 'value': '<a href=".+?" role="heading" aria-level="2" class="item-link " title=".+? en (.+?)">' },
@@ -47,6 +49,7 @@ class Crawler:
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'description', 'value': '<p class="ellipsis.*?>(.+?)<' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'tags', 'value': '<span class="listing-tags ">(.+?)</span>', 'options': 'DOTALL' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'list_field', 'name': 'agent', 'value': '<span class="hightop-agent-name">(.+?)</span>' },
+            { 'provider': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'created', 'value': '(^.)' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'link', 'value': '<link rel="canonical" href="https://www.idealista.com(.+?)"/>' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'type_v', 'value': '<span class="main-info__title-main">(.+?) en venta en .+?</span>' },
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'address', 'value': '<span class="main-info__title-main">.+? en venta en (.+?)</span>' },
@@ -62,6 +65,7 @@ class Crawler:
             { 'provider': 'idealista', 'type': 'regex', 'scope': 'detail_field', 'name': 'agent', 'value': '<h2 class="aditional-link_title .+? href="(.+?)".+?</a>' },
 
             { 'provider': 'idealista', 'type': 'lambda', 'scope': 'global', 'name': 'list_next', 'value': 'lambda m: f"https://www.idealista.com{m}" if isinstance(m, str) else f"https://www.idealista.com{m.group(1)}"' },
+            { 'provider': 'idealista', 'type': 'lambda', 'scope': 'global', 'name': 'created', 'value': 'lambda m: datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")' },
             { 'provider': 'idealista', 'type': 'lambda', 'scope': 'global', 'name': 'link', 'value': 'lambda m: f"https://www.idealista.com{m}" if isinstance(m, str) else f"https://www.idealista.com{m.group(1)}"' },
             { 'provider': 'idealista', 'type': 'lambda', 'scope': 'global', 'name': 'price', 'value': 'lambda m: m.replace(".", "")' },
             { 'provider': 'idealista', 'type': 'lambda', 'scope': 'global', 'name': 'price_old', 'value': 'lambda m: m.replace(".", "")' },
@@ -70,6 +74,7 @@ class Crawler:
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_items', 'name': 'list_items', 'value': 'accuracy(.+?)userId', 'options': 'DOTALL' },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_next', 'name': 'list_next', 'value': '\\\\"rel\\\\":\\\\"next\\\\",\\\\"href\\\\":\\\\"(.*?)\\\\"' },
 
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'created', 'value': '(^.)' },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'link', 'value': '"detail":.*?:"(.*?)"' },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'type_v', 'value': '"buildingType":"(.*?)"'},
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'address', 'value': '"district":"(.*?)","neighborhood":"(.*?)","zipCode":"(.*?)",.*?"province":"(.*?)"' },
@@ -82,6 +87,7 @@ class Crawler:
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'description', 'value': '"description":"(.*?)"' },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'tags', 'value': None },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'list_field', 'name': 'agent', 'value': '"clientUrl":"(.*?)"' },
+            { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'created', 'value': '(^.)' },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'link', 'value': '\\\\"realEstate\\\\":.*\\\\"detail\\\\":.*\\\\"es-ES\\\\":\\\\"(.+?)\\\\"' },
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'type_v', 'value': '\\\\"realEstate\\\\":.*\\\\"buildingType\\\\":\\\\"(.+?)\\\\"'},
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'address', 'value': '\\\\"realEstate\\\\":.*\\\\"address\\\\":.*?\\\\"district\\\\":\\\\"(.*?)\\\\",.*?\\\\"neighborhood\\\\":\\\\"(.*?)\\\\",.*?\\\\"zipCode\\\\":\\\\"(.*?)\\\\",.*?\\\\"province\\\\":\\\\"(.*?)\\\\"' },
@@ -96,6 +102,7 @@ class Crawler:
             { 'provider': 'fotocasa', 'type': 'regex', 'scope': 'detail_field', 'name': 'agent', 'value': '\\\\"realEstate\\\\":.*\\\\"clientUrl\\\\":\\\\"(.+?)\\\\"'},
 
             { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'global', 'name': 'list_items', 'value': 'lambda m: [e.replace("\\\\\\"", "\\"") for e in m]' },
+            { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'global', 'name': 'created', 'value': 'lambda m: datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")' },
             { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'global', 'name': 'link', 'value': 'lambda m: f"https://www.fotocasa.es{m}" if isinstance(m, str) else f"https://www.fotocasa.es{m.group(1)}"' },
             { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'global', 'name': 'address', 'value': 'lambda m : ", ".join(m)' },
             { 'provider': 'fotocasa', 'type': 'lambda', 'scope': 'list_field', 'name': 'info', 'value': 'lambda m: [": ".join(e) for e in m]' },
@@ -178,7 +185,7 @@ class Crawler:
 if __name__ == '__main__':
 
     logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
-    if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
+    # if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
     crawler = Crawler(webs_specs_datafile_path = Path('datasets/webs_specs.csv'), realty_datafile_path = Path('datasets/realties.csv'), cache_dir='cache/', cache_expires=3600)
     item = crawler.crawl_item('fotocasa', 'https://www.fotocasa.es/es/comprar/vivienda/barcelona-capital/no-amueblado/185497469/d', dry_run=True)

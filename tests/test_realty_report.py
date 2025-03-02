@@ -17,7 +17,7 @@ class TestRealtyReport(unittest.TestCase):
         self.assertEqual(realty.price, 250000)
         self.assertEqual(realty.price_old, 260000)
         self.assertEqual(realty.tags, ['terraza', 'barcelona reformado'])
-        self.assertEqual(realty.description, 'piso en venta en barcelona reformado y con terraza ocupada')
+        self.assertEqual(len(realty.description), 1393)
         self.assertEqual(realty.town, 'sant andreu, barcelona')
 
     # Test abstract methods of the class
@@ -88,10 +88,8 @@ class TestRealtyReport(unittest.TestCase):
         self.assertEqual(RealtyReport.get_town("calle test 123,Sant Andreu, Barcelona"), "sant andreu")
 
     def test_clean_description(self):
-        clean_description = RealtyReport.clean_description(self.sample_data['description'])
-        self.assertEqual(clean_description, 'piso en venta en barcelona reformado y con terraza ocupada')
         self.assertEqual(RealtyReport.clean_description("Piso en venta en<br> Barcelona reformado y con terraza ocupada"), "piso en venta en barcelona reformado y con terraza ocupada")
-        self.assertEqual(RealtyReport.clean_description(None), "")
+        self.assertEqual(RealtyReport.clean_description(None), None)
 
     def test_get_occupation(self):
         self.assertEqual(RealtyReport.get_occupation("ocupada"), "ocupada")

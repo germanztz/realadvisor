@@ -4,11 +4,11 @@ Descubre las mejores oportunidades inmobiliarias con nuestro sistema de recomend
 ### TODO
 
 - DONE informe: cambiar nombre del merged.pdf y añadir mensaje
-- informe: Eliminar el NAN del titulo
+- DONE informe: Eliminar el NAN del titulo
 - informe y datos: Añadir link a imagenes
 - informe: Añadir agencia
 - informe: corregir exceso de decimales en la rentabilidad 
-- datos: pasar el creation date a lambda
+- DONE datos: pasar el creation date a lambda
 - DONE env: Eliminar chat_id del repo
 - datos: encriptar datos
 - env: eliminar datos del repo
