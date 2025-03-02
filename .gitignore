@@ -176,3 +176,4 @@ flagged/
 cache/*
 realadvisor_conf.yaml
 logging.conf
+daemon.sh
