@@ -76,6 +76,11 @@
             max-width: 100%;
             height: auto;
         }
+        img.thumbnail {
+            width: 40%;
+            height: auto;
+            margin-left: 15px;
+        }
         .star-icon {
             display: inline-block;
             width: 16px;  /* Ajusta el tamaño de la estrella según sea necesario */
@@ -135,6 +140,12 @@
                 margin-top: 20px;
             }
         }        
+        @media print {
+            .no-break {
+                break-inside: avoid;
+                page-break-inside: avoid; /* Compatibilidad con navegadores más antiguos */
+            }
+        }
     </style>
 </head>
 <body>
@@ -152,22 +163,25 @@
     <div class="container">
         <div class="content">
             <h3>Análisis de Inversión</h3>
-            <div class="flex-container">
-                <div class="flex-item-left">
-                    <ul>
-                        <li><strong>Estrellas Globales:</strong> {{ stars_global_string }} ({{ "%.1f"|format(global_score_stars) }})</li>
-                        <li><strong>Estrellas de Precio:</strong> {{ stars_price_string }} ({{ precio_venta_stars }})</li>
-                        <li><strong>Estrellas de Rentabilidad:</strong> {{ stars_rentabilidad_string }} ({{ rentabilidad_10y_stars }})</li>
-                        <li><strong>Rentabilidad:</strong> {{ (rentabilidad_10y * 100) }} %</li>
-                    </ul>
-                </div>
-                <div class="flex-item-right">
-                    <img src="data:image/svg+xml;base64,{{ indicadores_rentabilidad }}" alt="Indicadores" />
-                </div>
-            </div>
-            <style>
 
-            </style>
+            <table>
+                <tr>
+                    <td style="width: 50%">
+                        <ul>
+                            <li><strong>Estrellas Globales:</strong> {{ stars_global_string }} ({{ "%.1f"|format(global_score_stars) }})</li>
+                            <li><strong>Estrellas de Precio:</strong> {{ stars_price_string }} ({{ precio_venta_stars }})</li>
+                            <li><strong>Estrellas de Rentabilidad:</strong> {{ stars_rentabilidad_string }} ({{ rentabilidad_10y_stars }})</li>
+                            <li><strong>Rentabilidad:</strong> {{ "%.2f"|format(rentabilidad_10y * 100) }} %</li>
+                        </ul>
+                    </td>
+                    <td style="width: 50%">
+                        <img src="data:image/svg+xml;base64,{{ indicadores_rentabilidad }}" alt="Indicadores" />
+                    </td>
+                </tr>
+            </table>
+                <!-- </div> -->
+            <!-- </div> -->
+
             <h3>Información Básica</h3>
             <ul>
                 <li><strong>Precio:</strong> {{ "{:,}".format(price) }} €</li>
@@ -183,9 +197,20 @@
                 <li><strong>Barrio:</strong> {{ barrio }}</li>
                 <li><strong>Creado:</strong> {{ created }}</li>
                 <li><strong>Disponibilidad:</strong> {{ disponibilidad }} {{ availability_to_emoji_string }}</li>
+                <li><strong>Agente:</strong> <a href="{{ agent }}"> link al agente </a> </li>
+
+                <h3>Imagenes</h3>
+                {% for image in images %}
+                    <img class="thumbnail" src="{{ image }}" alt="Image" >
+                {% endfor %}
             </ul>
-            <div style="page-break-before: always;"></div>
-            <img src="data:image/svg+xml;base64,{{ retabilidad_5a }}" alt="Retorno" /></br>
+            <!-- <div style="page-break-before: always;"></div> -->
+            <div style="page-break-before: auto;"></div>
+
+            <div class="no-break">
+                <h3>Análisis de la rentabilidad</h3>
+                <img src="data:image/svg+xml;base64,{{ retabilidad_5a }}" alt="Retorno" /></br>
+            </div>
 
             <h3>Análisis de la ubicación</h3>
             <img src="data:image/svg+xml;base64,{{ histograma_barrio }}" alt="Barrio" /></br>

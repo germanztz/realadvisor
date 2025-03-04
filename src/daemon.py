@@ -231,7 +231,7 @@ if __name__ == '__main__':
     parser.add_argument('--report', help='Generates new reports and exit', action='store_true', default=False)
     parser.add_argument("--start", help="Start the daemon scheduler", action="store_true", default=False)
     parser.add_argument("--send", help="Send email with the report", action="store_true", default=False)
-    parser.add_argument("--run", help="Run full circle of scrap, report and send", action="store_true", default=True)
+    parser.add_argument("--run", help="Run full circle of scrap, report and send", action="store_true", default=False)
 
     args = parser.parse_args()
 

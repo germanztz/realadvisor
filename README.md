@@ -3,19 +3,24 @@ Descubre las mejores oportunidades inmobiliarias con nuestro sistema de recomend
 
 ### TODO
 
-- DONE informe: cambiar nombre del merged.pdf y añadir mensaje
-- DONE informe: Eliminar el NAN del titulo
-- informe y datos: Añadir link a imagenes
-- informe: Añadir agencia
-- informe: corregir exceso de decimales en la rentabilidad 
-- DONE datos: pasar el creation date a lambda
-- DONE env: Eliminar chat_id del repo
 - datos: encriptar datos
 - env: eliminar datos del repo
 - datos: actualizar datos precios
-- env: añadir como servicio en htpc
 - informe: enviar cada informe en markdown por telegram
+- datos: añadir reported date a realty_report
 
+### Changelog
+
+- env: añadir como servicio en htpc
+- informe: corregir exceso de decimales en la rentabilidad 
+- informe: Añadir agencia
+- informe y datos: Añadir link a imagenes
+- informe: cambiar nombre del merged.pdf y añadir mensaje
+- informe: Eliminar el NAN del titulo
+- datos: pasar el creation date a lambda
+- env: Eliminar chat_id del repo
+
+## Docker Installation and Configuration
 
 
 This error occurs because the Docker daemon isn't running or you don't have the proper permissions. Let's fix this with these steps:

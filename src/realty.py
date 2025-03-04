@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional
+import ast
 
 @dataclass
 class Realty:
@@ -17,6 +18,7 @@ class Realty:
     _price_old: Optional[int] = field(default=None, init=False, repr=False)
     _tags: Optional[list[str]] = field(default=None, init=False, repr=False)
     _agent: Optional[str] = field(default=None, init=False, repr=False)
+    _images: Optional[list[str]] = field(default=None, init=False, repr=False)
 
 
     def __init__(self, link: str, type_v: str, address: str, town: str, price: int, rooms: int, surface: int, info: str, 
@@ -133,7 +135,7 @@ class Realty:
     
     @agent.setter
     def agent(self, value):
-        self._agent = value
+        self._agent = value if isinstance(value, str) else None
 
     @property
     def created(self):
@@ -142,6 +144,22 @@ class Realty:
     @created.setter
     def created(self, value):
         self._created = value
+
+    @property
+    def images(self):
+        return self._images
+    
+    @images.setter
+    def images(self, value):
+        if isinstance(value, str) :
+            if value.startswith('['):
+                self._images = ast.literal_eval(value)
+            else:
+                self._images = [value]
+        elif isinstance(value, list):
+            self._images = value
+        else:
+            self._images = None
 
     def to_dict(self):
         return {
@@ -157,7 +175,8 @@ class Realty:
             'price_old': self._price_old,
             'tags': self._tags,
             'agent': self._agent,
-            'created': self._created
+            'created': self._created,
+            'images': self._images,
         }
 
     def __str__(self):
@@ -221,6 +240,7 @@ class Realty:
     @staticmethod
     def get_sample_data():
         return {
+            'created': '2025-03-04 15:25:14',
             'link': 'https://example.com/inmueble/123456/',
             'address': 'calle test 123',
             'town': 'Sant Andreu, Barcelona',
@@ -235,5 +255,6 @@ Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, tur
             'price_old': '260000.0',
             'info': "['80 m²', '3 hab.']",
             'tags': 'Reformado, Exterior',
-            'agent': None,
+            'agent': 'https://www.fotocasa.es/es/inmobiliaria-gc-inmobiliaria/comprar/inmuebles/espana/todas-las-zonas/l?clientId=9202752587558',
+            'images': 'https://static.fotocasa.es/images/ads/68760093-40a0-4485-94ea-6532fd9500a7?rule=original'
         }

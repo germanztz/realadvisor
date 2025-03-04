@@ -20,6 +20,8 @@ from telegram_handler import TelegramHandler
 
 class Scraper:
 
+    CLEAN_RX = re.compile(r'\n|\r|\\(?!u)')
+
     # TODO: Implementar sin pandas ni numpy
 
     def __init__(self, url=None, datafile_path: Path=None, list_items: dict=None,
@@ -58,7 +60,6 @@ class Scraper:
         self.list_fields_lambda = list_fields_lambda
         self.detail_fields_lambda = detail_fields_lambda
 
-        # list_columns = [f.replace('_sub', '') for f in self.list_items_fields.keys() if 'elem' not in f]
         self.last_scaped_df = None
         self.main_data_df = None
         if self.datafile_path and self.datafile_path.exists():
@@ -100,12 +101,19 @@ class Scraper:
         Args:
             url (str): The new URL to be set for the scraper.
         """
-        if url is None: return False
-        self.url = url.strip()
-        self.base_url_rx = re.search(r'https?://([^/]+)', self.url)
-        self.base_url = self.base_url_rx.group(0)
-        self.base_host = self.base_url_rx.group(1)
-        self.logger.info(f'URL set to {url}')
+        if url is not None:
+            self.url = url.strip()
+            self.base_url_rx = re.search(r'https?://([^/]+)', self.url)
+            self.base_url = self.base_url_rx.group(0)
+            self.base_host = self.base_url_rx.group(1)
+        else:
+            self.logger.warning('URL was not provided. Using example URL.')
+            self.url = 'https://www.example.com'
+            self.base_url_rx = re.search(r'https?://([^/]+)', self.url)
+            self.base_url = self.base_url_rx.group(0)
+            self.base_host = self.base_url_rx.group(1)
+
+        self.logger.info(f'URL set to {self.url}')
 
     def parse_field(self, html, field_name, fields_rx, field_lambdas=None):
         """
@@ -326,7 +334,8 @@ class Scraper:
 
     def get_content(self, response):
         content = response.content.decode('utf-8')
-        content = content.replace("\n", "").replace("\r", "")
+        content = Scraper.CLEAN_RX.sub('', content)
+
         self.logger.debug(f'Contenido de la página: {content}')
         return content
 
@@ -475,56 +484,9 @@ class Scraper:
 
 if __name__ == '__main__':
 
-    def test_scrap_list():
-        scraper = Scraper('https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&minSurface=35&sortType=publicationDate')
-        # scraper = Scraper('https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000,metros-cuadrados-mas-de_35/?ordenado-por=fecha-publicacion-desc')
-        # scraper = Scraper('https://httpbin.io/headers')
-        scraper.scrap_list()
-
-    def test_response():
-        #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
-        #      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/132.0.0.0 Safari/537.36"
-        scraper = Scraper('https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&minSurface=35&sortType=publicationDate')
-        # scraper = Scraper('https://www.idealista.com/venta-viviendas/barcelona-barcelona/con-precio-hasta_100000,metros-cuadrados-mas-de_35/?ordenado-por=fecha-publicacion-desc')
-        # scraper = Scraper('https://httpbin.io/headers')
-        print(scraper.get_response().content)
-
-    def clean_cache_dir(cache_dir, cache_expires):
-        deleted_files = 0
-        for file in os.listdir(cache_dir):
-            if os.path.isfile(os.path.join(cache_dir, file)) and file.endswith('.html'):
-                file_path = os.path.join(cache_dir, file)
-                if time.time() - os.path.getmtime(file_path) > cache_expires:
-                    os.remove(file_path)
-                    deleted_files += 1
-        if deleted_files > 0:
-            print(f"Deleted {deleted_files} html files from the cache directory.")
-
-    def test_file():
-        with open('tests/fotocasa_lista.html', 'r') as f:
-            content = f.read().replace("\n", "").replace("\r", "")
-            list_items = { 'list_items': re.compile(r'accuracy(.+?)userId',re.DOTALL)}
-            next_page =  { 'next_page': re.compile(r'\\"rel\\":\\"next\\",\\"href\\":\\"(.*?)\\"') }
-
-            list_fields = {
-                'created': re.compile(r'(^.)'),
-                'address': re.compile(r'"district":"(.*?)","neighborhood":"(.*?)","zipCode":"(.*?)",.*?"province":"(.*?)"'),
-            }
-            fields_lambda = {
-                'list_items': lambda m: [e.replace('\\', '') for e in m],
-                'created': lambda m: datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                'address': lambda m: ", ".join(m)
-            }
-
-            scraper = Scraper('https://tt.com', None, list_items, list_fields, next_page, None, fields_lambda, cache_dir='cache/', cache_expires=3600)
-            
-            curr_page = scraper.parse_list(content, list_items, list_fields, fields_lambda, fields_lambda)
-            # hay_repetidos = scraper.store_page_csv(curr_page)
-            # scraper.paginate(content, hay_repetidos)
-            print(curr_page)
-
-    logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+    # logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
     # if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
-    test_file()
+    pass
+
 

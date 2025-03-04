@@ -150,6 +150,7 @@ class RealtyReport(Realty):
             'tags': self._tags,
             'agent': self._agent,
             'created': self._created,
+            'images': self._images,
 
             # Property characteristics
             'disponibilidad': self.disponibilidad,
