@@ -11,6 +11,7 @@ Descubre las mejores oportunidades inmobiliarias con nuestro sistema de recomend
 
 ### Changelog
 
+- env: ejecutar job 4 veces a aprtir de las 10 o a horas concretas 10:00, 14:00, 18:00, 22:00
 - env: añadir como servicio en htpc
 - informe: corregir exceso de decimales en la rentabilidad 
 - informe: Añadir agencia

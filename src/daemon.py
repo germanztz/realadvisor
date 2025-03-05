@@ -194,12 +194,14 @@ class Daemon:
         self.scheduler = AsyncIOScheduler()
         for job in self.conf['daemon']['jobs']:
             function_name = job['function']
-            interval_seconds = job['interval_seconds']
+            trigger = job['trigger']
+            trigger_args = dict(job['trigger_args'])
 
-            if function_name and interval_seconds:
-                self.scheduler.add_job(eval(f'self.{function_name}'), trigger='interval', seconds=interval_seconds, id=function_name)
-
+            if function_name and trigger:
+                job = self.scheduler.add_job(eval(f'self.{function_name}'), id=function_name, trigger=trigger, **trigger_args)
+        
         self.scheduler.start()
+        self.scheduler.print_jobs()
         print("Press Ctrl+{} to exit".format("Break" if os.name == "nt" else "C"))
         while True:
             await asyncio.sleep(1000)
@@ -229,7 +231,7 @@ if __name__ == '__main__':
     parser.add_argument('--dry-run', help='Runs the daemon in dry run mode', action='store_true', default=None)
     parser.add_argument('--scrap', help='Scrap new realties and exit', action='store_true', default=False)
     parser.add_argument('--report', help='Generates new reports and exit', action='store_true', default=False)
-    parser.add_argument("--start", help="Start the daemon scheduler", action="store_true", default=False)
+    parser.add_argument("--start", help="Start the daemon scheduler", action="store_true", default=True)
     parser.add_argument("--send", help="Send email with the report", action="store_true", default=False)
     parser.add_argument("--run", help="Run full circle of scrap, report and send", action="store_true", default=False)
 

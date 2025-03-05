@@ -41,7 +41,7 @@ class Realty:
     
     @link.setter 
     def link(self, value):
-        self._link = value
+        self._link = value if isinstance(value, str) else None
 
     @property
     def type_v(self):
@@ -49,7 +49,7 @@ class Realty:
     
     @type_v.setter
     def type_v(self, value):
-        self._type_v = value
+        self._type_v = value if isinstance(value, str) else None
 
     @property
     def address(self):
@@ -57,7 +57,7 @@ class Realty:
     
     @address.setter
     def address(self, value):
-        self._address = value
+        self._address = value if isinstance(value, str) else None
         
     @property
     def town(self):
@@ -65,7 +65,7 @@ class Realty:
     
     @town.setter
     def town(self, value):
-        self._town = value
+        self._town = value if isinstance(value, str) else None
 
     @property
     def price(self):
