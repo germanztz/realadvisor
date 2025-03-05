@@ -15,7 +15,7 @@ class TestRealty(unittest.TestCase):
         self.assertEqual(realty.tags, ['Reformado', 'Exterior'])
         self.assertEqual(len(realty.description), 1398)
         self.assertEqual(realty.town, 'Sant Andreu, Barcelona')
-        self.assertEqual(realty.images, 'https://static.fotocasa.es/images/ads/68760093-40a0-4485-94ea-6532fd9500a7?rule=original')
+        self.assertEqual(realty.images, ['https://static.fotocasa.es/images/ads/68760093-40a0-4485-94ea-6532fd9500a7?rule=original'])
              
     def test_str_representation(self):
         realty = Realty(**Realty.get_sample_data())
