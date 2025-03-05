@@ -201,7 +201,10 @@ class Daemon:
                 job = self.scheduler.add_job(eval(f'self.{function_name}'), id=function_name, trigger=trigger, **trigger_args)
         
         self.scheduler.start()
-        self.scheduler.print_jobs()
+
+        for job in self.scheduler.get_jobs():
+            self.logger.info(f"Added job: {job.id} - Next run time: {job.next_run_time}")
+ 
         print("Press Ctrl+{} to exit".format("Break" if os.name == "nt" else "C"))
         while True:
             await asyncio.sleep(1000)
