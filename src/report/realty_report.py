@@ -6,12 +6,15 @@ import re
 import unicodedata
 import codecs
 import sys
+from datetime import datetime
 sys.path.append('src')
 from realty import Realty
 
 @dataclass
 class RealtyReport(Realty):
     # Property characteristics (additional to Realty)
+    reported: datetime = field(default=None, init=False, repr=False)
+
     disponibilidad: str = field(default=None, init=False, repr=False)
     
     # Location info
@@ -75,7 +78,6 @@ class RealtyReport(Realty):
     precio_alquiler_estimado: float = field(default=None, init=False, repr=False)
     precio_venta_estimado: float = field(default=None, init=False, repr=False)
 
-
     _okupadas_words = ['okupada', 'okupado', 'ocupado', 'ocupada', 'ocupacional', 'sin posesión', 'sin posesion','ilegal','alquiler fallido']
     _alquiladas_words = ['alquilado', 'alquilada', 'inquilinos', 'inquilino', 'usufructuarios', 'usufructuario', 'arrendado']
 
@@ -121,6 +123,7 @@ class RealtyReport(Realty):
 
         self.disponibilidad = RealtyReport.get_occupation(self._description)
         self._tags = RealtyReport.extract_tags(self._description)
+        self.reported = datetime.now() if self.reported is None else self.reported
 
     def set_indicadores(self, **indicadores):
         for key, value in indicadores.items():
@@ -151,6 +154,9 @@ class RealtyReport(Realty):
             'agent': self._agent,
             'created': self._created,
             'images': self._images,
+
+            # Report creation date
+            'reported': self.reported,
 
             # Property characteristics
             'disponibilidad': self.disponibilidad,
