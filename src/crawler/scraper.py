@@ -484,7 +484,7 @@ class Scraper:
 
 if __name__ == '__main__':
 
-    # logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+    # logging.config.fileConfig('local/logging.conf', disable_existing_loggers=False)
     # if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
     pass

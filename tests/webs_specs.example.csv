@@ -1,0 +1,10 @@
+provider,type,scope,name,value,options
+fotocasa,url,global,base_url,https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/todas-las-zonas/l/1?maxPrice=100000&minSurface=35&sortType=publicationDate,
+fotocasa,regex,list_items,list_items,accuracy(.+?)userId,DOTALL
+fotocasa,regex,list_next,list_next,"""rel"":""next"",""href"":""(.*?)""",
+fotocasa,regex,list_field,created,(^.),
+fotocasa,regex,list_field,link,"""detail"":.*?:""(.*?)""",
+fotocasa,regex,detail_field,created,(^.),
+fotocasa,regex,detail_field,link,"""realEstate"":.*""detail"":.*""es-ES"":""(.+?)""",
+fotocasa,lambda,global,created,"lambda m: datetime.datetime.now().strftime(""%Y-%m-%d %H:%M:%S"")",
+fotocasa,lambda,global,link,"lambda m: f""https://www.fotocasa.es{m}"" if isinstance(m, str) else f""https://www.fotocasa.es{m.group(1)}""",

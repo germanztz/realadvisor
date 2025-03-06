@@ -170,14 +170,4 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-
-reports/
-flagged/
-cache/*
-realadvisor_conf.yaml
-logging.conf
-daemon.sh
-datasets/gen_informe.csv
-datasets/realties_25_01_22.csv
-datasets/realties.csv
-datasets/realties.old.csv
+local/

@@ -227,18 +227,20 @@ class Daemon:
 
 if __name__ == '__main__':
 
-    logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
-    # if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
     parser = argparse.ArgumentParser(description='Real Advisor Daemon')
-    parser.add_argument('--config', help='Path to configuration file', default='realadvisor_conf.yaml')
+    parser.add_argument('--config', help='Path to configuration file', default='local/realadvisor_conf.yaml')
+    parser.add_argument('--log-config', help='Path to logging configuration file', default='local/logging.conf')
     parser.add_argument('--dry-run', help='Runs the daemon in dry run mode', action='store_true', default=None)
     parser.add_argument('--scrap', help='Scrap new realties and exit', action='store_true', default=False)
     parser.add_argument('--report', help='Generates new reports and exit', action='store_true', default=False)
-    parser.add_argument("--start", help="Start the daemon scheduler", action="store_true", default=True)
+    parser.add_argument("--start", help="Start the daemon scheduler", action="store_true", default=False)
     parser.add_argument("--send", help="Send email with the report", action="store_true", default=False)
     parser.add_argument("--run", help="Run full circle of scrap, report and send", action="store_true", default=False)
 
     args = parser.parse_args()
+
+    logging.config.fileConfig(args.log_config, disable_existing_loggers=False)
+    # if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
     if not (args.scrap or args.report or args.send or args.start or args.run):
         parser.print_usage()

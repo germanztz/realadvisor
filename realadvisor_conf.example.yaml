@@ -1,28 +1,30 @@
 daemon:
-  dry_run: True
+  dry_run: False
   jobs:
     - function: run
-      interval_seconds: 14400
-    # - function: generate_new_reports
-    #   interval_seconds: 3600
+      trigger: cron
+      trigger_args:
+        hour: 10,14,18,22
     - function: telegram_monitor
-      interval_seconds: 10
+      trigger: interval
+      trigger_args:
+        seconds: 10
   telegram:
-    bot_token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-    chat_id: xxxxxxxxxxx
-  max_realties_in_report: 10
+    bot_token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    chat_id: xxxxxxxxxxxxxxxxxxxx
+  max_realties_in_report: 1
 
 crawler:
-  webs_specs_datafile_path: datasets/webs_specs.csv
-  realty_datafile_path: datasets/realties.csv
-  cache_dir: cache/
+  webs_specs_datafile_path: local/datasets/webs_specs.csv
+  realty_datafile_path: local/datasets/realties.csv
+  cache_dir: local/cache/
   cache_expires: 3600
   delay_seconds: 600
 
 reporter:
   template_path: src/report/report_template3.html
-  output_dir: reports/
-  cache_dir: cache/
-  precios_path: datasets/gen_precios.csv
-  indicadores_path: datasets/gen_indicadores.csv
-  reports_path: datasets/gen_informe.csv
+  output_dir: local/reports/
+  cache_dir: local/cache/
+  precios_path: local/datasets/gen_precios.csv
+  indicadores_path: local/datasets/gen_indicadores.csv
+  reports_path: local/datasets/gen_informe.csv

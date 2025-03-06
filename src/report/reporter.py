@@ -26,7 +26,7 @@ class Reporter:
 
     def __init__(self, template_path: Path = Path('src/report/report_template3.html'), output_dir: Path = Path('reports/'),
                  precios_path: Path = Path('datasets/gen_precios.csv'), indicadores_path: Path = Path('datasets/gen_indicadores.csv'),
-                 reports_path: Path = Path('datasets/gen_informe.csv'), cache_dir: Path = Path('cache/')):
+                 reports_path: Path = Path('datasets/gen_informe.csv'), cache_dir: Path = Path('local/cache/')):
 
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info('Init')
@@ -51,7 +51,7 @@ class Reporter:
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir, exist_ok=True)
 
-    def get_pending_realies(self, realty_datafile_path: Path = Path('datasets/realties.csv')) -> [Realty] :
+    def get_pending_realies(self, realty_datafile_path: Path = Path('local/datasets/realties.csv')) -> [Realty] :
         realties = pd.read_csv(realty_datafile_path)
         reports = pd.read_csv(self.reports_path)
         realties = realties.set_index('link')
@@ -421,7 +421,7 @@ class Reporter:
         except Exception as e:
             self.logger.error(e, exc_info=True)
 
-    def run(self, realty_datafile_path: Path = Path('datasets/realties.csv'), top_n: int = 10, top_field: str = 'global_score_stars'):
+    def run(self, realty_datafile_path: Path = Path('local/datasets/realties.csv'), top_n: int = 10, top_field: str = 'global_score_stars'):
         try:
             self.logger.info(f"Generating reports for {realty_datafile_path}")
             realties = pd.read_csv(realty_datafile_path)
@@ -432,7 +432,7 @@ class Reporter:
 
 if __name__ == "__main__":
 
-    logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
+    logging.config.fileConfig('local/logging.conf', disable_existing_loggers=False)
     if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
 
     reporter = Reporter()
