@@ -22,8 +22,6 @@ class Scraper:
 
     CLEAN_RX = re.compile(r'\n|\r|\\(?!u)')
 
-    # TODO: Implementar sin pandas ni numpy
-
     def __init__(self, url=None, datafile_path: Path=None, list_items: dict=None,
         list_items_fields: dict=None, list_next: dict=None, detail_fields:dict=None,
         list_fields_lambda:dict=None, detail_fields_lambda:dict=None, 
@@ -204,7 +202,7 @@ class Scraper:
         self.logger.debug(f'Campos a extraer: {list_columns}')
 
         if elements_html is None:
-            self.logger.warning(f'la busqueda de elementos de la lista devolvió None {list_items_rx}')
+            self.logger.error(f'None elements found in {self.url}')
             return None
 
         item_list = list()
@@ -484,9 +482,7 @@ class Scraper:
 
 if __name__ == '__main__':
 
-    # logging.config.fileConfig('local/logging.conf', disable_existing_loggers=False)
+    logging.config.fileConfig('local/logging.conf', disable_existing_loggers=False)
     # if Path('realadvisor.log').exists(): os.remove('realadvisor.log')
-
-    pass
-
+    scraper = Scraper()
 

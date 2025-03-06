@@ -175,6 +175,11 @@ class TestScraper(unittest.TestCase):
         self.assertEqual(anitem['agent'], 'https://www.fotocasa.es/es/inmobiliaria-gc-inmobiliaria/comprar/inmuebles/espana/todas-las-zonas/l?clientId=9202752587558')
         self.assertEqual(len(anitem['images']), 16)
 
+    def test_error_empty_list(self):
+        scraper = Scraper()
+        content = '<html><body>ERROR LOADING</body></html>'
+        alist = scraper.parse_list(content, self.foto_list_items, self.foto_list_fields, self.foto_list_lambda, self.foto_detail_lambda)
+        self.assertEqual(alist, None)
 
 if __name__ == "__main__":
     unittest.main()
