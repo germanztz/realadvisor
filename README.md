@@ -3,13 +3,12 @@ Descubre las mejores oportunidades inmobiliarias con nuestro sistema de recomend
 
 ### TODO
 
-- datos: encriptar datos
-- env: eliminar datos del repo
 - datos: actualizar datos precios
 - informe: enviar cada informe en markdown por telegram
 
 ### Changelog
 
+- env: eliminar datos del repo
 - datos: añadir reported date a realty_report
 - env: ejecutar job 4 veces a aprtir de las 10 o a horas concretas 10:00, 14:00, 18:00, 22:00
 - env: añadir como servicio en htpc
