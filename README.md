@@ -2,6 +2,9 @@
 
 RealAdvisor is a property-scraping, analysis and reporting system for residential real estate. It crawls property portals, normalizes property data into domain objects, computes investment metrics, and generates human-friendly reports (HTML/PDF). It includes a lightweight Gradio-based UI and a daemon/orchestrator for scheduled runs and Telegram notifications.
 
+<img src="public/images/logo.png" alt="logo" style="width:200px;" />
+
+
 Key technologies
 - Python (data processing, crawling, reporting)
 - HTML/Jinja2 templates for reports (several templates under `src/report`)
@@ -13,6 +16,11 @@ Key technologies
 - Telegram Bot for notifications (TelegramHandler)
 - Gradio for quick UI (`app.py`)
 - Dockerfile for containerized runs
+
+
+![screenshot](public/images/Captura.png "Screenshot")
+
+
 
 High-level architecture
 - src/crawler: provider-agnostic Crawler and Scraper that use declarative provider specs (CSV) to extract list/detail pages
@@ -65,16 +73,18 @@ Running the app (local / development)
   python app.py
   (This should launch a Gradio interface to generate a single-property report — confirm behavior after launching.)
 
-- Run the daemon/orchestrator:
+- Run the daemon/orchestrator:  
+```
   # either use the run script (make it executable)
-  ./run.sh
+  ./run.sh  
   # or run the daemon script directly (verify CLI options)
   python src/daemon.py --config realadvisor_conf.yaml
-
+```
 - Docker:
+```
   docker build -t realadvisor .
   docker run --rm -v $(pwd)/local:/app/local -v $(pwd)/reports:/app/reports realadvisor
-
+```
 Running tests
 - There is a `tests/` directory. If tests are implemented, run:
   pytest -q
