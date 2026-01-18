@@ -11,7 +11,7 @@ import numpy as np # type: ignore
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-import pdfkit
+from pyhtml2pdf import converter
 from jinja2 import Environment, FileSystemLoader
 sys.path.append('src')
 sys.path.append('src/report')
@@ -24,9 +24,9 @@ import re
 
 class Reporter:
 
-    def __init__(self, template_path: Path = Path('src/report/report_template3.html'), output_dir: Path = Path('reports/'),
-                 precios_path: Path = Path('datasets/gen_precios.csv'), indicadores_path: Path = Path('datasets/gen_indicadores.csv'),
-                 reports_path: Path = Path('datasets/gen_informe.csv'), cache_dir: Path = Path('local/cache/')):
+    def __init__(self, template_path: Path = Path('src/report/report_template3.html'), output_dir: Path = Path('local/reports/'),
+                 precios_path: Path = Path('local/datasets/gen_precios.csv'), indicadores_path: Path = Path('local/datasets/gen_indicadores.csv'),
+                 reports_path: Path = Path('local/datasets/gen_informe.csv'), cache_dir: Path = Path('local/cache/')):
 
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info('Init')
@@ -364,7 +364,7 @@ class Reporter:
 
         # Generate PDF if requested
         if generate_pdf:
-            pdfkit.from_file(report_path, pdf_path)
+            converter.convert(f'file:///{report_path}', pdf_path)
             report_path = pdf_path
 
         self.logger.info(f"Report generated in {report_path}")
