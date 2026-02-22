@@ -11,7 +11,10 @@ import numpy as np # type: ignore
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from pyhtml2pdf import converter
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+
 from jinja2 import Environment, FileSystemLoader
 sys.path.append('src')
 sys.path.append('src/report')
@@ -364,11 +367,51 @@ class Reporter:
 
         # Generate PDF if requested
         if generate_pdf:
-            converter.convert(f'file:///{report_path}', pdf_path)
+            self.convert_html_to_pdf(f'file:///{report_path}', pdf_path)
             report_path = pdf_path
 
         self.logger.info(f"Report generated in {report_path}")
         return report_path
+
+    def convert_html_to_pdf(self, html_path: str, pdf_path: str):
+        """Convertir HTML a PDF usando Selenium con Chrome del sistema"""
+        
+        options = Options()
+        options.binary_location = os.environ.get('CHROME_BIN', '/usr/bin/chromium')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--headless=new')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--window-size=1920,1080')
+        
+        # Usar chromedriver del sistema
+        service = Service(executable_path='/usr/bin/chromedriver')
+        
+        driver = webdriver.Chrome(service=service, options=options)
+        
+        try:
+            # Navegar al archivo HTML local
+            driver.get(html_path)
+            
+            # Usar Chrome DevTools Protocol para imprimir a PDF
+            result = driver.execute_cdp_cmd('Page.printToPDF', {
+                'printBackground': True,
+                'paperWidth': 8.27,      # A4 en pulgadas
+                'paperHeight': 11.69,
+                'marginTop': 0.4,
+                'marginBottom': 0.4,
+                'marginLeft': 0.4,
+                'marginRight': 0.4,
+            })
+            
+            # Guardar el PDF
+            with open(pdf_path, 'wb') as f:
+                f.write(base64.b64decode(result['data']))
+        except Exception as e:
+            self.logger.error(f"Error printing to PDF: {e}")
+
+        finally:
+            driver.quit()
 
     def store_reports(self, new_reports: list[RealtyReport]):
 

@@ -1,7 +1,6 @@
 gradio>=4.0.0
 numpy
 pandas
-pyhtml2pdf
 jinja2
 pytest
 pytest-cov
@@ -9,7 +8,7 @@ watchdog
 debugpy
 seaborn
 fake_useragent
-selenium==4.30.0
+selenium
 apscheduler
 PyPDF2
 python-telegram-bot

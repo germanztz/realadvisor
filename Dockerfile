@@ -1,28 +1,28 @@
-# Use an official Python runtime as the base image
 FROM python:3.14.2-slim-trixie
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies
+# Instalar Chromium y todas sus dependencias
 RUN apt-get update && apt-get install -y \
-    # build-essential \
-    # libglib2.0-0 \
-    # libnss3 \
-    # libgconf-2-4 \
-    # libfontconfig1 \
-    curl \
+    chromium curl\
+    chromium-driver \
+    libxcb1 libx11-6 libxcomposite1 libxrender1 libxext6 libxfixes3 \
+    libxi6 libxrandr2 libxss1 libxtst6 libglib2.0-0 libnss3 libnspr4 \
+    libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 \
+    libfontconfig1 libgbm1 libgtk-3-0 libxkbcommon0 libasound2 \
+    fonts-liberation fonts-noto-color-emoji xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy only requirements first to leverage Docker cache
-# COPY requirements.txt .
+# Configurar variables de entorno para Selenium
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMEDRIVER=/usr/bin/chromedriver
+
 COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set environment variable for Gradio port and Python path
-# ENV GRADIO_SERVER_PORT=7860
-# ENV PYTHONPATH=/app
-
-# Command to run the application with auto-reload
-# CMD ["python", "-m", "watchdog.watchmedo", "auto-restart", "--directory", ".", "--pattern", "*.py", "--recursive", "--", "python", "app.py"]
 CMD ["python","src/daemon.py","--run"]
+
+# docker build . -t realadvisor:22.02.21 -t realadvisor:latest
+# docker run -it realadvisor /bin/bash
+# docker rmi -f $(docker images -f "dangling=true" -q)
